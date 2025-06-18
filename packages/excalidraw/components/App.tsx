@@ -599,6 +599,8 @@ class App extends React.Component<AppProps, AppState> {
   public flowChartCreator: FlowChartCreator = new FlowChartCreator();
   private flowChartNavigator: FlowChartNavigator = new FlowChartNavigator();
 
+  private customFileResolutionEnabled: boolean = false;
+
   hitLinkElement?: NonDeletedExcalidrawElement;
   lastPointerDownEvent: React.PointerEvent<HTMLElement> | null = null;
   lastPointerUpEvent: React.PointerEvent<HTMLElement> | PointerEvent | null =
@@ -655,6 +657,7 @@ class App extends React.Component<AppProps, AppState> {
       zenModeEnabled = false,
       gridModeEnabled = false,
       objectsSnapModeEnabled = false,
+      customFileResolutionEnabled = false,
       theme = defaultAppState.theme,
       name = `${t("labels.untitled")}-${getDateTime()}`,
     } = props;
@@ -690,12 +693,15 @@ class App extends React.Component<AppProps, AppState> {
     this.store = new Store(this);
     this.history = new History(this.store);
 
+    this.customFileResolutionEnabled = customFileResolutionEnabled;
+
     if (excalidrawAPI) {
       const api: ExcalidrawImperativeAPI = {
         updateScene: this.updateScene,
         mutateElement: this.mutateElement,
         updateLibrary: this.library.updateLibrary,
         addFiles: this.addFiles,
+        updateFiles: this.updateFiles,
         resetScene: this.resetScene,
         getSceneElementsIncludingDeleted: this.getSceneElementsIncludingDeleted,
         getSceneElementsMapIncludingDeleted:
@@ -3847,9 +3853,28 @@ class App extends React.Component<AppProps, AppState> {
     },
   );
 
+  /**
+   * adds supplied files to existing files in the appState.
+   * NOTE if file already exists in editor state, the file data IS updated
+   * */
+  public updateFiles: ExcalidrawImperativeAPI["addFiles"] = withBatchedUpdates(
+    (files) => {
+      const { addedFiles } = this.addMissingFiles(files, undefined, true);
+
+      this.clearImageShapeCache(addedFiles);
+      this.scene.triggerUpdate();
+
+      const initializedImageElements = getInitializedImageElements(this.scene.getNonDeletedElements());
+      // this.addNewImagesToImageCache();
+
+      this.updateImageCache(initializedImageElements,addedFiles);
+    },
+  );
+
   private addMissingFiles = (
     files: BinaryFiles | BinaryFileData[],
     replace = false,
+    overwriteExisting = false,
   ) => {
     const nextFiles = replace ? {} : { ...this.files };
     const addedFiles: BinaryFiles = {};
@@ -3858,7 +3883,13 @@ class App extends React.Component<AppProps, AppState> {
 
     for (const fileData of _files) {
       if (nextFiles[fileData.id]) {
-        continue;
+        if (overwriteExisting) {
+          // Bump the version if the file is found and overwriteExisting is true
+          // nextFiles[fileData.id].version = (nextFiles[fileData.id].version || 0) + 1;
+        } else {
+          // Regular flow if overwriting existing files is not enabled
+          continue;
+        }
       }
 
       addedFiles[fileData.id] = fileData;
@@ -9911,7 +9942,7 @@ class App extends React.Component<AppProps, AppState> {
             },
           ]);
 
-          let cachedImageData = this.imageCache.get(fileId);
+          let cachedImageData = this.customFileResolutionEnabled ? this.imageCache.get(fileId) : undefined; // We don't need caching for custom file resolution
 
           if (!cachedImageData) {
             this.addNewImagesToImageCache();
