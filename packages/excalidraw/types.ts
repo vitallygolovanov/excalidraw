@@ -33,6 +33,7 @@ import type {
   ExcalidrawIframeLikeElement,
   OrderedExcalidrawElement,
   ExcalidrawNonSelectionElement,
+  ExcalidrawImageElement,
 } from "@excalidraw/element/types";
 
 import type {
@@ -529,6 +530,19 @@ export type OnUserFollowedPayload = {
   action: "FOLLOW" | "UNFOLLOW";
 };
 
+export type FileEventResolver = (
+  fileId: FileId, 
+  event: string | Event, 
+  resolve: (value: HTMLImageElement | PromiseLike<HTMLImageElement>) => void, 
+  reject: (reason?: any) => void
+) => void;
+
+export type EventResolver = (
+  event: string | Event, 
+  resolve: (value: HTMLImageElement | PromiseLike<HTMLImageElement>) => void, 
+  reject: (reason?: any) => void
+) => void;
+
 export interface ExcalidrawProps {
   onChange?: (
     elements: readonly OrderedExcalidrawElement[],
@@ -589,6 +603,16 @@ export interface ExcalidrawProps {
   onLibraryChange?: (libraryItems: LibraryItems) => void | Promise<any>;
   autoFocus?: boolean;
   generateIdForFile?: (file: File) => string | Promise<string>;
+  resolveFile?: (
+    file: File
+  ) => Promise<{ 
+    fileId: string, 
+    dataURL: string 
+  }> | { 
+    fileId: string, 
+    dataURL: string 
+  };
+  onFileUrlError?: FileEventResolver;
   generateLinkForSelection?: (id: string, type: "element" | "group") => string;
   onLinkOpen?: (
     element: NonDeletedExcalidrawElement,

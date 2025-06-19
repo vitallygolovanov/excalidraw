@@ -8,6 +8,9 @@ import type {
   AppClassProperties,
   DataURL,
   BinaryFiles,
+  AppProps,
+  FileEventResolver,
+  EventResolver,
 } from "@excalidraw/excalidraw/types";
 
 import { isInitializedImageElement } from "./typeChecks";
@@ -18,15 +21,15 @@ import type {
   InitializedExcalidrawImageElement,
 } from "./types";
 
-export const loadHTMLImageElement = (dataURL: DataURL) => {
+export const loadHTMLImageElement = (dataURL: DataURL, onError?: EventResolver) => {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
       resolve(image);
     };
-    image.onerror = (error) => {
+    image.onerror = onError ? (error)=>onError(error, resolve, reject) : ((error) => {
       reject(error);
-    };
+    });
     image.src = dataURL;
   });
 };
@@ -37,10 +40,12 @@ export const updateImageCache = async ({
   fileIds,
   files,
   imageCache,
+  onFileUrlError,
 }: {
   fileIds: FileId[];
   files: BinaryFiles;
   imageCache: AppClassProperties["imageCache"];
+  onFileUrlError?: FileEventResolver;
 }) => {
   const updatedFiles = new Map<FileId, true>();
   const erroredFiles = new Map<FileId, true>();
@@ -57,7 +62,14 @@ export const updateImageCache = async ({
                 throw new Error("Only images can be added to ImageCache");
               }
 
-              const imagePromise = loadHTMLImageElement(fileData.dataURL);
+              const imagePromise = loadHTMLImageElement(
+                fileData.dataURL, 
+                onFileUrlError 
+                  ? (e, resolve, reject)=>
+                      onFileUrlError(fileId, e, resolve, reject) 
+                  : undefined
+              );
+
               const data = {
                 image: imagePromise,
                 mimeType: fileData.mimeType,

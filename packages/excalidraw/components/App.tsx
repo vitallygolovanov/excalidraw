@@ -458,6 +458,7 @@ import type {
   GenerateDiagramToCode,
   NullableGridSize,
   Offsets,
+  DataURL,
 } from "../types";
 import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { Action, ActionResult } from "../actions/types";
@@ -599,8 +600,6 @@ class App extends React.Component<AppProps, AppState> {
   public flowChartCreator: FlowChartCreator = new FlowChartCreator();
   private flowChartNavigator: FlowChartNavigator = new FlowChartNavigator();
 
-  private customFileResolutionEnabled: boolean = false;
-
   hitLinkElement?: NonDeletedExcalidrawElement;
   lastPointerDownEvent: React.PointerEvent<HTMLElement> | null = null;
   lastPointerUpEvent: React.PointerEvent<HTMLElement> | PointerEvent | null =
@@ -657,7 +656,6 @@ class App extends React.Component<AppProps, AppState> {
       zenModeEnabled = false,
       gridModeEnabled = false,
       objectsSnapModeEnabled = false,
-      customFileResolutionEnabled = false,
       theme = defaultAppState.theme,
       name = `${t("labels.untitled")}-${getDateTime()}`,
     } = props;
@@ -692,8 +690,6 @@ class App extends React.Component<AppProps, AppState> {
 
     this.store = new Store(this);
     this.history = new History(this.store);
-
-    this.customFileResolutionEnabled = customFileResolutionEnabled;
 
     if (excalidrawAPI) {
       const api: ExcalidrawImperativeAPI = {
@@ -9875,55 +9871,68 @@ class App extends React.Component<AppProps, AppState> {
 
     setCursor(this.interactiveCanvas, "wait");
 
-    if (mimeType === MIME_TYPES.svg) {
-      try {
-        imageFile = SVGStringToFile(
-          normalizeSVG(await imageFile.text()),
-          imageFile.name,
-        );
-      } catch (error: any) {
-        console.warn(error);
-        throw new Error(t("errors.svgImageInsertError"));
+    let dataURL: DataURL;
+    let fileId: FileId;
+
+    if (this.props.resolveFile) {
+      const res = await this.props.resolveFile(imageFile);
+      dataURL = res.dataURL as DataURL;
+      fileId = res.fileId as FileId;
+      
+      if (!dataURL || !fileId) {
+        throw new Error(t("errors.imageInsertError"));
       }
-    }
-
-    // generate image id (by default the file digest) before any
-    // resizing/compression takes place to keep it more portable
-    const fileId = await ((this.props.generateIdForFile?.(
-      imageFile,
-    ) as Promise<FileId>) || generateIdFromFile(imageFile));
-
-    if (!fileId) {
-      console.warn(
-        "Couldn't generate file id or the supplied `generateIdForFile` didn't resolve to one.",
-      );
-      throw new Error(t("errors.imageInsertError"));
-    }
-
-    const existingFileData = this.files[fileId];
-    if (!existingFileData?.dataURL) {
-      try {
-        imageFile = await resizeImageFile(imageFile, {
-          maxWidthOrHeight: DEFAULT_MAX_IMAGE_WIDTH_OR_HEIGHT,
-        });
-      } catch (error: any) {
-        console.error(
-          "Error trying to resizing image file on insertion",
-          error,
-        );
+    } else {
+      if (mimeType === MIME_TYPES.svg && !this.props.resolveFile) {
+        try {
+          imageFile = SVGStringToFile(
+            normalizeSVG(await imageFile.text()),
+            imageFile.name,
+          );
+        } catch (error: any) {
+          console.warn(error);
+          throw new Error(t("errors.svgImageInsertError"));
+        }
       }
 
-      if (imageFile.size > MAX_ALLOWED_FILE_BYTES) {
-        throw new Error(
-          t("errors.fileTooBig", {
-            maxSize: `${Math.trunc(MAX_ALLOWED_FILE_BYTES / 1024 / 1024)}MB`,
-          }),
-        );
-      }
-    }
+      // generate image id (by default the file digest) before any
+      // resizing/compression takes place to keep it more portable
+      fileId = await ((this.props.generateIdForFile?.(
+        imageFile,
+      ) as Promise<FileId>) || generateIdFromFile(imageFile));
 
-    const dataURL =
-      this.files[fileId]?.dataURL || (await getDataURL(imageFile));
+      if (!fileId) {
+        console.warn(
+          "Couldn't generate file id or the supplied `generateIdForFile` didn't resolve to one.",
+        );
+        throw new Error(t("errors.imageInsertError"));
+      }
+
+      const existingFileData = this.files[fileId];
+      if (!existingFileData?.dataURL) {
+        try {
+          imageFile = await resizeImageFile(imageFile, {
+            maxWidthOrHeight: DEFAULT_MAX_IMAGE_WIDTH_OR_HEIGHT,
+          });
+        } catch (error: any) {
+          console.error(
+            "Error trying to resizing image file on insertion",
+            error,
+          );
+        }
+
+        if (imageFile.size > MAX_ALLOWED_FILE_BYTES) {
+          throw new Error(
+            t("errors.fileTooBig", {
+              maxSize: `${Math.trunc(MAX_ALLOWED_FILE_BYTES / 1024 / 1024)}MB`,
+            }),
+          );
+        }
+      }
+
+      dataURL =
+        this.files[fileId]?.dataURL || (await getDataURL(imageFile));
+    }
 
     let imageElement = newElementWith(_imageElement, {
       fileId,
@@ -9942,7 +9951,7 @@ class App extends React.Component<AppProps, AppState> {
             },
           ]);
 
-          let cachedImageData = this.customFileResolutionEnabled ? this.imageCache.get(fileId) : undefined; // We don't need caching for custom file resolution
+          let cachedImageData = this.imageCache.get(fileId);
 
           if (!cachedImageData) {
             this.addNewImagesToImageCache();
@@ -10162,6 +10171,7 @@ class App extends React.Component<AppProps, AppState> {
       imageCache: this.imageCache,
       fileIds: elements.map((element) => element.fileId),
       files,
+      onFileUrlError: this.props.onFileUrlError,
     });
 
     if (erroredFiles.size) {
