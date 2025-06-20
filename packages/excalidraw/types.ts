@@ -533,14 +533,14 @@ export type OnUserFollowedPayload = {
 export type FileEventResolver = (
   fileId: FileId, 
   event: string | Event, 
-  resolve: (value: HTMLImageElement | PromiseLike<HTMLImageElement>) => void, 
-  reject: (reason?: any) => void
+  resolve?: (value: HTMLImageElement | PromiseLike<HTMLImageElement>) => void, 
+  reject?: (reason?: any) => void
 ) => void;
 
 export type EventResolver = (
   event: string | Event, 
-  resolve: (value: HTMLImageElement | PromiseLike<HTMLImageElement>) => void, 
-  reject: (reason?: any) => void
+  resolve?: (value: HTMLImageElement | PromiseLike<HTMLImageElement>) => void, 
+  reject?: (reason?: any) => void
 ) => void;
 
 export interface ExcalidrawProps {
