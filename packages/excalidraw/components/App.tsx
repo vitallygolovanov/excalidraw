@@ -9867,23 +9867,24 @@ class App extends React.Component<AppProps, AppState> {
     if (!isSupportedImageFile(imageFile)) {
       throw new Error(t("errors.unsupportedFileType"));
     }
-    const mimeType = imageFile.type;
+    let mimeType = imageFile.type;
 
     setCursor(this.interactiveCanvas, "wait");
 
     let dataURL: DataURL;
     let fileId: FileId;
 
-    if (this.props.resolveFile) {
-      const res = await this.props.resolveFile(imageFile);
+    if (this.props.handleFileUpload) {
+      const res = await this.props.handleFileUpload(imageFile);
       dataURL = res.dataURL as DataURL;
       fileId = res.fileId as FileId;
+      mimeType = res.mimeType as ValueOf<typeof IMAGE_MIME_TYPES>;
       
       if (!dataURL || !fileId) {
         throw new Error(t("errors.imageInsertError"));
       }
     } else {
-      if (mimeType === MIME_TYPES.svg && !this.props.resolveFile) {
+      if (mimeType === MIME_TYPES.svg && !this.props.handleFileUpload) {
         try {
           imageFile = SVGStringToFile(
             normalizeSVG(await imageFile.text()),
@@ -10171,6 +10172,7 @@ class App extends React.Component<AppProps, AppState> {
       imageCache: this.imageCache,
       fileIds: elements.map((element) => element.fileId),
       files,
+      resolveFileUrl: this.props.resolveFileUrl,
       onFileUrlError: this.props.onFileUrlError,
     });
 

@@ -603,15 +603,16 @@ export interface ExcalidrawProps {
   onLibraryChange?: (libraryItems: LibraryItems) => void | Promise<any>;
   autoFocus?: boolean;
   generateIdForFile?: (file: File) => string | Promise<string>;
-  resolveFile?: (
+  handleFileUpload?: (
     file: File
-  ) => Promise<{ 
+  ) => MaybePromise<{ 
     fileId: string, 
-    dataURL: string 
-  }> | { 
-    fileId: string, 
-    dataURL: string 
-  };
+    dataURL: string,
+    mimeType: string,
+  }>;
+  resolveFileUrl?: (
+    fileId: FileId,
+  ) => MaybePromise<BinaryFileData | null | undefined>;
   onFileUrlError?: FileEventResolver;
   generateLinkForSelection?: (id: string, type: "element" | "group") => string;
   onLinkOpen?: (

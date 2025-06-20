@@ -11,6 +11,7 @@ import type {
   AppProps,
   FileEventResolver,
   EventResolver,
+  BinaryFileData,
 } from "@excalidraw/excalidraw/types";
 
 import { isInitializedImageElement } from "./typeChecks";
@@ -40,15 +41,35 @@ export const updateImageCache = async ({
   fileIds,
   files,
   imageCache,
+  resolveFileUrl,
   onFileUrlError,
 }: {
   fileIds: FileId[];
   files: BinaryFiles;
   imageCache: AppClassProperties["imageCache"];
+  resolveFileUrl?: AppProps["resolveFileUrl"];
   onFileUrlError?: FileEventResolver;
 }) => {
   const updatedFiles = new Map<FileId, true>();
   const erroredFiles = new Map<FileId, true>();
+
+  // if resolveFileUrl is provided, use it to build files object
+  if (resolveFileUrl) {
+    files = Object.fromEntries(
+      (await Promise.all(
+        fileIds.map(async (fileId) => {
+            const fileData = files[fileId] ?? await resolveFileUrl(fileId);
+            if (fileData) {
+              return [
+                fileId,
+                fileData,
+              ];
+            }
+            return null;
+          }),
+      )).filter((entry): entry is [FileId, BinaryFileData] => entry !== null)
+    );
+  }
 
   await Promise.all(
     fileIds.reduce((promises, fileId) => {

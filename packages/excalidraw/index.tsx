@@ -56,6 +56,9 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     showDeprecatedFonts,
     renderScrollbars,
     customFileResolutionEnabled,
+    handleFileUpload,
+    resolveFileUrl,
+    onFileUrlError,
   } = props;
 
   const canvasActions = props.UIOptions?.canvasActions;
@@ -149,6 +152,9 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           showDeprecatedFonts={showDeprecatedFonts}
           renderScrollbars={renderScrollbars}
           customFileResolutionEnabled={customFileResolutionEnabled}
+          handleFileUpload={handleFileUpload}
+          resolveFileUrl={resolveFileUrl}
+          onFileUrlError={onFileUrlError}
         >
           {children}
         </App>
