@@ -10168,13 +10168,21 @@ class App extends React.Component<AppProps, AppState> {
     elements: readonly InitializedExcalidrawImageElement[],
     files = this.files,
   ) => {
-    const { updatedFiles, erroredFiles } = await _updateImageCache({
+    const { updatedFiles, erroredFiles, resolvedFiles } = await _updateImageCache({
       imageCache: this.imageCache,
       fileIds: elements.map((element) => element.fileId),
       files,
       resolveFileUrl: this.props.resolveFileUrl,
       onFileUrlError: this.props.onFileUrlError,
     });
+
+    if (resolvedFiles.size) {
+      const nextFiles = { ...this.files };
+      for (const [fileId, fileData] of resolvedFiles) {
+        nextFiles[fileId] = fileData;
+      }
+      this.files = nextFiles;
+    }
 
     if (erroredFiles.size) {
       this.scene.replaceAllElements(

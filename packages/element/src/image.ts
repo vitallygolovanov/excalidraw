@@ -22,9 +22,68 @@ import type {
   InitializedExcalidrawImageElement,
 } from "./types";
 
+const isInlineDataUrl = (value: string): boolean => {
+  return typeof value === "string" && value.startsWith("data:");
+};
+
+const isBlobUrl = (value: string): boolean => {
+  return typeof value === "string" && value.startsWith("blob:");
+};
+
+const blobToDataUrl = async (blob: Blob): Promise<DataURL> => {
+  return new Promise<DataURL>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as DataURL);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(blob);
+  });
+};
+
+const normalizeFileDataUrlForCanvas = async (
+  fileData: BinaryFileData,
+): Promise<BinaryFileData> => {
+  const src = fileData?.dataURL;
+  if (!src || isInlineDataUrl(src) || isBlobUrl(src)) {
+    return fileData;
+  }
+
+  try {
+    const response = await fetch(src, {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      return fileData;
+    }
+
+    const blob = await response.blob();
+    const dataURL = await blobToDataUrl(blob);
+
+    return {
+      ...fileData,
+      dataURL,
+      mimeType:
+        fileData.mimeType === MIME_TYPES.binary
+          ? ((blob.type || MIME_TYPES.png) as BinaryFileData["mimeType"])
+          : fileData.mimeType,
+    };
+  } catch {
+    return fileData;
+  }
+};
+
 export const loadHTMLImageElement = (dataURL: DataURL, onError?: EventResolver) => {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
+
+    try {
+      if (!isInlineDataUrl(dataURL) && !isBlobUrl(dataURL)) {
+        image.crossOrigin = "anonymous";
+      }
+    } catch {
+      // no-op
+    }
+
     image.onload = () => {
       resolve(image);
     };
@@ -52,6 +111,7 @@ export const updateImageCache = async ({
 }) => {
   const updatedFiles = new Map<FileId, true>();
   const erroredFiles = new Map<FileId, true>();
+  const resolvedFiles = new Map<FileId, BinaryFileData>();
 
   // if resolveFileUrl is provided, use it to build files object
   if (resolveFileUrl) {
@@ -60,6 +120,7 @@ export const updateImageCache = async ({
         fileIds.map(async (fileId) => {
             const fileData = files[fileId] ?? await resolveFileUrl(fileId);
             if (fileData) {
+              resolvedFiles.set(fileId, fileData);
               return [
                 fileId,
                 fileData,
@@ -79,12 +140,19 @@ export const updateImageCache = async ({
         return promises.concat(
           (async () => {
             try {
-              if (fileData.mimeType === MIME_TYPES.binary) {
+              const normalizedFileData = await normalizeFileDataUrlForCanvas(fileData);
+
+              if (normalizedFileData !== fileData) {
+                files[fileId] = normalizedFileData;
+                resolvedFiles.set(fileId, normalizedFileData);
+              }
+
+              if (normalizedFileData.mimeType === MIME_TYPES.binary) {
                 throw new Error("Only images can be added to ImageCache");
               }
 
               const imagePromise = loadHTMLImageElement(
-                fileData.dataURL, 
+                (normalizedFileData.dataURL ?? fileData.dataURL) as DataURL,
                 onFileUrlError 
                   ? (e, resolve, reject)=>
                       onFileUrlError(fileId, e, resolve, reject) 
@@ -93,7 +161,7 @@ export const updateImageCache = async ({
 
               const data = {
                 image: imagePromise,
-                mimeType: fileData.mimeType,
+                mimeType: normalizedFileData.mimeType,
               } as const;
               // store the promise immediately to indicate there's an in-progress
               // initialization
@@ -118,6 +186,8 @@ export const updateImageCache = async ({
     updatedFiles,
     /** files that failed when creating HTMLImageElement */
     erroredFiles,
+    /** files that were resolved via cache/memory or resolveFileUrl */
+    resolvedFiles,
   };
 };
 
