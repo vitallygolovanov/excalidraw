@@ -29,6 +29,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     isCollaborating = false,
     onPointerUpdate,
     renderTopRightUI,
+    reservedHorizontalWidth,
     langCode = defaultLang.code,
     viewModeEnabled,
     zenModeEnabled,
@@ -125,6 +126,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           isCollaborating={isCollaborating}
           onPointerUpdate={onPointerUpdate}
           renderTopRightUI={renderTopRightUI}
+          reservedHorizontalWidth={reservedHorizontalWidth}
           langCode={langCode}
           viewModeEnabled={viewModeEnabled}
           zenModeEnabled={zenModeEnabled}

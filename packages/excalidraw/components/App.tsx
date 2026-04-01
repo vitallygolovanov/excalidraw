@@ -2419,8 +2419,14 @@ class App extends React.Component<AppProps, AppState> {
       return;
     }
 
-    const { width: editorWidth, height: editorHeight } =
+    const { width: editorContainerWidth, height: editorHeight } =
       container.getBoundingClientRect();
+
+    const reservedHorizontalWidth = Math.max(
+      0,
+      this.props.reservedHorizontalWidth || 0,
+    );
+    const editorWidth = Math.max(0, editorContainerWidth - reservedHorizontalWidth);
 
     const sidebarBreakpoint =
       this.props.UIOptions.dockedSidebarBreakpoint != null
@@ -2741,7 +2747,8 @@ class App extends React.Component<AppProps, AppState> {
 
     if (
       prevProps.UIOptions.dockedSidebarBreakpoint !==
-      this.props.UIOptions.dockedSidebarBreakpoint
+        this.props.UIOptions.dockedSidebarBreakpoint ||
+      prevProps.reservedHorizontalWidth !== this.props.reservedHorizontalWidth
     ) {
       this.refreshEditorBreakpoints();
     }

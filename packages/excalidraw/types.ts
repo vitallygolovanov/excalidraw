@@ -584,6 +584,12 @@ export interface ExcalidrawProps {
     isMobile: boolean,
     appState: UIAppState,
   ) => JSX.Element | null;
+  /**
+   * Reserved horizontal UI width in pixels that should be excluded from
+   * responsive editor breakpoint calculations (e.g. host-app controls
+   * overlaid in the top toolbar row).
+   */
+  reservedHorizontalWidth?: number;
   langCode?: Language["code"];
   viewModeEnabled?: boolean;
   zenModeEnabled?: boolean;
