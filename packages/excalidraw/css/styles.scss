@@ -280,7 +280,23 @@ body.excalidraw-cursor-resize * {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     padding: 8px;
+
+    .App-toolbar-content__undo-redo {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 0 0 auto;
+    }
+
+    .App-toolbar-content__grouped-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      flex: 0 1 auto;
+    }
 
     .dropdown-menu--mobile {
       bottom: 55px;

@@ -6,6 +6,8 @@ export type Tunnel = ReturnType<typeof tunnel>;
 
 type TunnelsContextValue = {
   MainMenuTunnel: Tunnel;
+  MainMenuMobileAppToolbarBeforeTunnel: Tunnel;
+  MainMenuMobileAppToolbarAfterTunnel: Tunnel;
   WelcomeScreenMenuHintTunnel: Tunnel;
   WelcomeScreenToolbarHintTunnel: Tunnel;
   WelcomeScreenHelpHintTunnel: Tunnel;
@@ -30,6 +32,8 @@ export const useInitializeTunnels = () => {
   return React.useMemo((): TunnelsContextValue => {
     return {
       MainMenuTunnel: tunnel(),
+      MainMenuMobileAppToolbarBeforeTunnel: tunnel(),
+      MainMenuMobileAppToolbarAfterTunnel: tunnel(),
       WelcomeScreenMenuHintTunnel: tunnel(),
       WelcomeScreenToolbarHintTunnel: tunnel(),
       WelcomeScreenHelpHintTunnel: tunnel(),

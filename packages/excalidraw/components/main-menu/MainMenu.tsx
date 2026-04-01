@@ -13,6 +13,36 @@ import { HamburgerMenuIcon } from "../icons";
 
 import * as DefaultItems from "./DefaultItems";
 
+const MobileAppToolbarBefore = ({
+  children,
+}: {
+  children?: React.ReactNode;
+}) => {
+  const { MainMenuMobileAppToolbarBeforeTunnel } = useTunnels();
+
+  return (
+    <MainMenuMobileAppToolbarBeforeTunnel.In>
+      {children}
+    </MainMenuMobileAppToolbarBeforeTunnel.In>
+  );
+};
+MobileAppToolbarBefore.displayName = "MainMenu.MobileAppToolbarBefore";
+
+const MobileAppToolbarAfter = ({
+  children,
+}: {
+  children?: React.ReactNode;
+}) => {
+  const { MainMenuMobileAppToolbarAfterTunnel } = useTunnels();
+
+  return (
+    <MainMenuMobileAppToolbarAfterTunnel.In>
+      {children}
+    </MainMenuMobileAppToolbarAfterTunnel.In>
+  );
+};
+MobileAppToolbarAfter.displayName = "MainMenu.MobileAppToolbarAfter";
+
 const MainMenu = Object.assign(
   withInternalFallback(
     "MainMenu",
@@ -73,6 +103,8 @@ const MainMenu = Object.assign(
   ),
   {
     Trigger: DropdownMenu.Trigger,
+    MobileAppToolbarBefore,
+    MobileAppToolbarAfter,
     Item: DropdownMenu.Item,
     ItemLink: DropdownMenu.ItemLink,
     ItemCustom: DropdownMenu.ItemCustom,

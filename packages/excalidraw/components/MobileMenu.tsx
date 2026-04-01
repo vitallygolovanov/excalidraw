@@ -74,6 +74,8 @@ export const MobileMenu = ({
   const {
     WelcomeScreenCenterTunnel,
     MainMenuTunnel,
+    MainMenuMobileAppToolbarBeforeTunnel,
+    MainMenuMobileAppToolbarAfterTunnel,
     DefaultSidebarTriggerTunnel,
   } = useTunnels();
   const renderToolbar = () => {
@@ -142,20 +144,26 @@ export const MobileMenu = ({
     ) {
       return (
         <div className="App-toolbar-content">
+          <MainMenuMobileAppToolbarBeforeTunnel.Out />
           <MainMenuTunnel.Out />
+          <MainMenuMobileAppToolbarAfterTunnel.Out />
         </div>
       );
     }
 
     return (
       <div className="App-toolbar-content">
-        <MainMenuTunnel.Out />
-        {actionManager.renderAction("toggleEditMenu")}
-        {actionManager.renderAction(
-          appState.multiElement ? "finalize" : "duplicateSelection",
-        )}
-        {actionManager.renderAction("deleteSelectedElements")}
-        <div>
+        <div className="App-toolbar-content__grouped-actions">
+          <MainMenuMobileAppToolbarBeforeTunnel.Out />
+          <MainMenuTunnel.Out />
+          <MainMenuMobileAppToolbarAfterTunnel.Out />
+          {actionManager.renderAction("toggleEditMenu")}
+          {actionManager.renderAction(
+            appState.multiElement ? "finalize" : "duplicateSelection",
+          )}
+          {actionManager.renderAction("deleteSelectedElements")}
+        </div>
+        <div className="App-toolbar-content__undo-redo">
           {actionManager.renderAction("undo")}
           {actionManager.renderAction("redo")}
         </div>
