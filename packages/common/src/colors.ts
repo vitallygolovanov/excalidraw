@@ -2,6 +2,232 @@ import oc from "open-color";
 
 import type { Merge } from "./utility-types";
 
+type RGBA = {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+};
+
+const DARK_MODE_COLORS_CACHE = new Map<string, string>();
+
+const clamp = (value: number, min: number, max: number) => {
+  return Math.min(max, Math.max(min, value));
+};
+
+const parseRgbChannel = (value: string) => {
+  const trimmed = value.trim();
+  if (trimmed.endsWith("%")) {
+    return clamp(Math.round((Number.parseFloat(trimmed) / 100) * 255), 0, 255);
+  }
+  return clamp(Math.round(Number.parseFloat(trimmed)), 0, 255);
+};
+
+const parseAlphaChannel = (value: string) => {
+  const trimmed = value.trim();
+  if (trimmed.endsWith("%")) {
+    return clamp(Number.parseFloat(trimmed) / 100, 0, 1);
+  }
+  return clamp(Number.parseFloat(trimmed), 0, 1);
+};
+
+const parseHexColor = (color: string): RGBA | null => {
+  const hex = color.trim().slice(1);
+
+  if (hex.length === 3 || hex.length === 4) {
+    const [r, g, b, a = "f"] = hex.split("");
+    return {
+      r: Number.parseInt(`${r}${r}`, 16),
+      g: Number.parseInt(`${g}${g}`, 16),
+      b: Number.parseInt(`${b}${b}`, 16),
+      a: Number.parseInt(`${a}${a}`, 16) / 255,
+    };
+  }
+
+  if (hex.length === 6 || hex.length === 8) {
+    return {
+      r: Number.parseInt(hex.slice(0, 2), 16),
+      g: Number.parseInt(hex.slice(2, 4), 16),
+      b: Number.parseInt(hex.slice(4, 6), 16),
+      a:
+        hex.length === 8 ? Number.parseInt(hex.slice(6, 8), 16) / 255 : 1,
+    };
+  }
+
+  return null;
+};
+
+const parseFunctionalColorParts = (value: string) => {
+  const [main, alpha] = value.split("/");
+  const parts = (main.includes(",") ? main.split(",") : main.split(/\s+/))
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (alpha) {
+    parts.push(alpha.trim());
+  }
+
+  return parts;
+};
+
+const hslToRgb = (hue: number, saturation: number, lightness: number) => {
+  const h = ((hue % 360) + 360) % 360;
+  const s = clamp(saturation, 0, 100) / 100;
+  const l = clamp(lightness, 0, 100) / 100;
+
+  if (s === 0) {
+    const value = Math.round(l * 255);
+    return { r: value, g: value, b: value };
+  }
+
+  const chroma = (1 - Math.abs(2 * l - 1)) * s;
+  const huePrime = h / 60;
+  const x = chroma * (1 - Math.abs((huePrime % 2) - 1));
+
+  let r1 = 0;
+  let g1 = 0;
+  let b1 = 0;
+
+  if (huePrime >= 0 && huePrime < 1) {
+    r1 = chroma;
+    g1 = x;
+  } else if (huePrime < 2) {
+    r1 = x;
+    g1 = chroma;
+  } else if (huePrime < 3) {
+    g1 = chroma;
+    b1 = x;
+  } else if (huePrime < 4) {
+    g1 = x;
+    b1 = chroma;
+  } else if (huePrime < 5) {
+    r1 = x;
+    b1 = chroma;
+  } else {
+    r1 = chroma;
+    b1 = x;
+  }
+
+  const match = l - chroma / 2;
+
+  return {
+    r: Math.round((r1 + match) * 255),
+    g: Math.round((g1 + match) * 255),
+    b: Math.round((b1 + match) * 255),
+  };
+};
+
+const parseRgbColor = (color: string): RGBA | null => {
+  const match = color.trim().match(/^rgba?\((.*)\)$/i);
+  if (!match) {
+    return null;
+  }
+
+  const parts = parseFunctionalColorParts(match[1]);
+  if (parts.length < 3) {
+    return null;
+  }
+
+  return {
+    r: parseRgbChannel(parts[0]),
+    g: parseRgbChannel(parts[1]),
+    b: parseRgbChannel(parts[2]),
+    a: parts[3] ? parseAlphaChannel(parts[3]) : 1,
+  };
+};
+
+const parseHslColor = (color: string): RGBA | null => {
+  const match = color.trim().match(/^hsla?\((.*)\)$/i);
+  if (!match) {
+    return null;
+  }
+
+  const parts = parseFunctionalColorParts(match[1]);
+  if (parts.length < 3) {
+    return null;
+  }
+
+  const hue = Number.parseFloat(parts[0]);
+  const saturation = Number.parseFloat(parts[1]);
+  const lightness = Number.parseFloat(parts[2]);
+
+  if (
+    Number.isNaN(hue) ||
+    Number.isNaN(saturation) ||
+    Number.isNaN(lightness)
+  ) {
+    return null;
+  }
+
+  const rgb = hslToRgb(hue, saturation, lightness);
+
+  return {
+    ...rgb,
+    a: parts[3] ? parseAlphaChannel(parts[3]) : 1,
+  };
+};
+
+const parseCssColor = (color: string): RGBA | null => {
+  const normalized = color.trim().toLowerCase();
+
+  if (normalized === "transparent") {
+    return { r: 0, g: 0, b: 0, a: 0 };
+  }
+
+  if (normalized.startsWith("#")) {
+    return parseHexColor(normalized);
+  }
+
+  if (normalized.startsWith("rgb")) {
+    return parseRgbColor(normalized);
+  }
+
+  if (normalized.startsWith("hsl")) {
+    return parseHslColor(normalized);
+  }
+
+  return null;
+};
+
+const cssInvert = (r: number, g: number, b: number, percent: number) => {
+  const factor = clamp(percent, 0, 100) / 100;
+  const invertChannel = (channel: number) => {
+    return Math.round(clamp(channel * (1 - factor) + (255 - channel) * factor, 0, 255));
+  };
+
+  return {
+    r: invertChannel(r),
+    g: invertChannel(g),
+    b: invertChannel(b),
+  };
+};
+
+const cssHueRotate = (r: number, g: number, b: number, degrees: number) => {
+  const radians = (degrees * Math.PI) / 180;
+  const red = r / 255;
+  const green = g / 255;
+  const blue = b / 255;
+  const cosine = Math.cos(radians);
+  const sine = Math.sin(radians);
+  const matrix = [
+    0.213 + cosine * 0.787 - sine * 0.213,
+    0.715 - cosine * 0.715 - sine * 0.715,
+    0.072 - cosine * 0.072 + sine * 0.928,
+    0.213 - cosine * 0.213 + sine * 0.143,
+    0.715 + cosine * 0.285 + sine * 0.14,
+    0.072 - cosine * 0.072 - sine * 0.283,
+    0.213 - cosine * 0.213 - sine * 0.787,
+    0.715 - cosine * 0.715 + sine * 0.715,
+    0.072 + cosine * 0.928 + sine * 0.072,
+  ];
+
+  return {
+    r: Math.round(clamp(red * matrix[0] + green * matrix[1] + blue * matrix[2], 0, 1) * 255),
+    g: Math.round(clamp(red * matrix[3] + green * matrix[4] + blue * matrix[5], 0, 1) * 255),
+    b: Math.round(clamp(red * matrix[6] + green * matrix[7] + blue * matrix[8], 0, 1) * 255),
+  };
+};
+
 export const COLOR_OUTLINE_CONTRAST_THRESHOLD = 240;
 
 // FIXME can't put to utils.ts rn because of circular dependency
@@ -167,7 +393,43 @@ export const getAllColorsSpecificShade = (index: 0 | 1 | 2 | 3 | 4) =>
     COLOR_PALETTE.red[index],
   ] as const;
 
-export const rgbToHex = (r: number, g: number, b: number) =>
-  `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+export const rgbToHex = (r: number, g: number, b: number, a?: number) => {
+  const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b)
+    .toString(16)
+    .slice(1)}`;
+
+  if (typeof a === "number" && a < 1) {
+    const alpha = Math.round(clamp(a, 0, 1) * 255)
+      .toString(16)
+      .padStart(2, "0");
+    return `${hex}${alpha}`;
+  }
+
+  return hex;
+};
+
+export const applyDarkModeFilter = (color: string) => {
+  const cached = DARK_MODE_COLORS_CACHE.get(color);
+  if (cached) {
+    return cached;
+  }
+
+  const parsed = parseCssColor(color);
+  if (!parsed) {
+    return color;
+  }
+
+  if (parsed.a === 0) {
+    DARK_MODE_COLORS_CACHE.set(color, "transparent");
+    return "transparent";
+  }
+
+  const inverted = cssInvert(parsed.r, parsed.g, parsed.b, 93);
+  const rotated = cssHueRotate(inverted.r, inverted.g, inverted.b, 180);
+  const filtered = rgbToHex(rotated.r, rotated.g, rotated.b, parsed.a);
+
+  DARK_MODE_COLORS_CACHE.set(color, filtered);
+  return filtered;
+};
 
 // -----------------------------------------------------------------------------

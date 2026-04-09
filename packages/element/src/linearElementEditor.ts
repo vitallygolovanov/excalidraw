@@ -1801,7 +1801,7 @@ export class LinearElementEditor {
     let y1;
     let x2;
     let y2;
-    if (element.points.length < 2 || !ShapeCache.get(element)) {
+    if (element.points.length < 2 || !ShapeCache.get(element, null)) {
       // XXX this is just a poor estimate and not very useful
       const { minX, minY, maxX, maxY } = element.points.reduce(
         (limits, [x, y]) => {

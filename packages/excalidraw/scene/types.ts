@@ -37,6 +37,7 @@ export type StaticCanvasRenderConfig = {
   embedsValidationStatus: EmbedsValidationStatus;
   elementsPendingErasure: ElementsPendingErasure;
   pendingFlowchartNodes: PendingExcalidrawElements | null;
+  theme: AppState["theme"];
 };
 
 export type SVGRenderConfig = {
@@ -55,6 +56,7 @@ export type SVGRenderConfig = {
    * @default true
    */
   reuseImages: boolean;
+  theme: AppState["theme"];
 };
 
 export type InteractiveCanvasRenderConfig = {
