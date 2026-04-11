@@ -5,7 +5,9 @@ import tunnel from "tunnel-rat";
 export type Tunnel = ReturnType<typeof tunnel>;
 
 type TunnelsContextValue = {
+  MainMenuDesktopTriggerBeforeTunnel: Tunnel;
   MainMenuTunnel: Tunnel;
+  MainMenuDesktopTriggerAfterTunnel: Tunnel;
   MainMenuMobileAppToolbarBeforeTunnel: Tunnel;
   MainMenuMobileAppToolbarAfterTunnel: Tunnel;
   WelcomeScreenMenuHintTunnel: Tunnel;
@@ -31,7 +33,9 @@ const tunnelsJotai = createIsolation();
 export const useInitializeTunnels = () => {
   return React.useMemo((): TunnelsContextValue => {
     return {
+      MainMenuDesktopTriggerBeforeTunnel: tunnel(),
       MainMenuTunnel: tunnel(),
+      MainMenuDesktopTriggerAfterTunnel: tunnel(),
       MainMenuMobileAppToolbarBeforeTunnel: tunnel(),
       MainMenuMobileAppToolbarAfterTunnel: tunnel(),
       WelcomeScreenMenuHintTunnel: tunnel(),

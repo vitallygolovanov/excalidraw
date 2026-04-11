@@ -356,6 +356,21 @@ body.excalidraw-cursor-resize * {
     justify-self: flex-end;
   }
 
+  .App-menu_top__canvas-actions {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .App-menu_top__canvas-actions__triggers {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 2.25rem;
+  }
+
   .App-menu_bottom {
     position: absolute;
     bottom: 1rem;

@@ -99,4 +99,29 @@ describe("Test internal component fallback rendering", () => {
       queryAllByTestId(excalContainers[1], "main-menu-trigger")?.length,
     ).toBe(1);
   });
+
+  it("should keep desktop trigger slots isolated and ordered around the main menu", async () => {
+    const { container, getByTestId } = await render(
+      <Excalidraw>
+        <MainMenu.DesktopTriggerBefore>
+          <button data-testid="desktop-trigger-before">before</button>
+        </MainMenu.DesktopTriggerBefore>
+        <MainMenu>test</MainMenu>
+        <MainMenu.DesktopTriggerAfter>
+          <button data-testid="desktop-trigger-after">after</button>
+        </MainMenu.DesktopTriggerAfter>
+      </Excalidraw>,
+    );
+
+    const before = getByTestId(container, "desktop-trigger-before");
+    const menu = getByTestId(container, "main-menu-trigger");
+    const after = getByTestId(container, "desktop-trigger-after");
+
+    expect(
+      before.compareDocumentPosition(menu) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      after.compareDocumentPosition(menu) & Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBeTruthy();
+  });
 });

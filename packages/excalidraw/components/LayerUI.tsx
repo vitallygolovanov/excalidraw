@@ -201,10 +201,14 @@ const LayerUI = ({
   };
 
   const renderCanvasActions = () => (
-    <div style={{ position: "relative" }}>
-      {/* wrapping to Fragment stops React from occasionally complaining
-                about identical Keys */}
-      <tunnels.MainMenuTunnel.Out />
+    <div className="App-menu_top__canvas-actions">
+      <div className="App-menu_top__canvas-actions__triggers">
+        <tunnels.MainMenuDesktopTriggerBeforeTunnel.Out />
+        {/* wrapping to Fragment stops React from occasionally complaining
+                  about identical Keys */}
+        <tunnels.MainMenuTunnel.Out />
+        <tunnels.MainMenuDesktopTriggerAfterTunnel.Out />
+      </div>
       {renderWelcomeScreen && <tunnels.WelcomeScreenMenuHintTunnel.Out />}
     </div>
   );

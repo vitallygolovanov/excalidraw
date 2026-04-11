@@ -43,6 +43,36 @@ const MobileAppToolbarAfter = ({
 };
 MobileAppToolbarAfter.displayName = "MainMenu.MobileAppToolbarAfter";
 
+const DesktopTriggerBefore = ({
+  children,
+}: {
+  children?: React.ReactNode;
+}) => {
+  const { MainMenuDesktopTriggerBeforeTunnel } = useTunnels();
+
+  return (
+    <MainMenuDesktopTriggerBeforeTunnel.In>
+      {children}
+    </MainMenuDesktopTriggerBeforeTunnel.In>
+  );
+};
+DesktopTriggerBefore.displayName = "MainMenu.DesktopTriggerBefore";
+
+const DesktopTriggerAfter = ({
+  children,
+}: {
+  children?: React.ReactNode;
+}) => {
+  const { MainMenuDesktopTriggerAfterTunnel } = useTunnels();
+
+  return (
+    <MainMenuDesktopTriggerAfterTunnel.In>
+      {children}
+    </MainMenuDesktopTriggerAfterTunnel.In>
+  );
+};
+DesktopTriggerAfter.displayName = "MainMenu.DesktopTriggerAfter";
+
 const MainMenu = Object.assign(
   withInternalFallback(
     "MainMenu",
@@ -103,6 +133,8 @@ const MainMenu = Object.assign(
   ),
   {
     Trigger: DropdownMenu.Trigger,
+    DesktopTriggerBefore,
+    DesktopTriggerAfter,
     MobileAppToolbarBefore,
     MobileAppToolbarAfter,
     Item: DropdownMenu.Item,
