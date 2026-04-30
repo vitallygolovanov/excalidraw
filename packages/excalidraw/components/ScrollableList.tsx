@@ -14,11 +14,12 @@ export const ScrollableList = ({
   placeholder,
   children,
 }: ScrollableListProps) => {
-  const isEmpty = !Children.count(children);
+  const normalizedChildren = Children.toArray(children);
+  const isEmpty = normalizedChildren.length === 0;
 
   return (
     <div className={clsx("ScrollableList__wrapper", className)} role="menu">
-      {isEmpty ? <div className="empty">{placeholder}</div> : children}
+      {isEmpty ? <div className="empty">{placeholder}</div> : normalizedChildren}
     </div>
   );
 };

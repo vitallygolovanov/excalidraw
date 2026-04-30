@@ -31,6 +31,26 @@ export const getClientColor = (
   socketId: SocketId,
   collaborator: Collaborator | undefined,
 ) => {
+  const getColor = (color: Collaborator["color"] | undefined) => {
+    // awareness actually supplies a raw string here at runtime even
+    // though Excalidraw types this field as `{ background, stroke }`.
+    const runtimeColor = color as
+      | Collaborator["color"]
+      | string
+      | undefined;
+
+    if (typeof runtimeColor === "string") {
+      return runtimeColor.trim() || undefined;
+    }
+
+    return runtimeColor?.background?.trim() || undefined;
+  };
+
+  const explicitColor = getColor(collaborator?.color);
+  if (explicitColor) {
+    return explicitColor;
+  }
+
   // to get more even distribution in case `id` is not uniformly distributed to
   // begin with, we hash it
   const hash = Math.abs(hashToInteger(collaborator?.id || socketId));
