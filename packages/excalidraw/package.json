@@ -139,6 +139,6 @@
   "scripts": {
     "gen:types": "rimraf types && tsc",
     "build:esm": "rimraf dist && node ../../scripts/buildPackage.js && pnpm gen:types",
-    "prepare": "pnpm build:esm"
+    "prepare": "rimraf dist/dev dist/prod && node ../../scripts/buildPackage.js"
   }
 }

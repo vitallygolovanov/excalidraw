@@ -4,7 +4,6 @@
     "strict": true,
     "skipLibCheck": true,
     "declaration": true,
-    "preserveSymlinks": true,
     "allowSyntheticDefaultImports": true,
     "module": "ESNext",
     "moduleResolution": "Node",
