@@ -152,6 +152,33 @@ describe("generic element", () => {
     expect(rectangle.angle).toBeCloseTo(0);
   });
 
+  it("resizes a fixed-ratio frame without Shift", async () => {
+    const frame = API.createElement({
+      type: "frame",
+      width: 200,
+      height: 100,
+    });
+
+    const lockedFrame = {
+      ...frame,
+      customData: {
+        fixedAspectRatio: "16:9",
+      },
+    };
+
+    API.setElements([lockedFrame]);
+
+    UI.resize(lockedFrame, "se", [100, 10]);
+
+    const updatedFrame = API.getElement(lockedFrame);
+
+    expect(updatedFrame.x).toBeCloseTo(0);
+    expect(updatedFrame.y).toBeCloseTo(0);
+    expect(updatedFrame.width).toBeCloseTo(300);
+    expect(updatedFrame.height).toBeCloseTo(150);
+    expect(updatedFrame.angle).toBeCloseTo(0);
+  });
+
   it("resizes from center", async () => {
     const rectangle = UI.createElement("rectangle", {
       width: 200,

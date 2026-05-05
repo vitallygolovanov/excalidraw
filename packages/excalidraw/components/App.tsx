@@ -555,6 +555,20 @@ const gesture: Gesture = {
   initialScale: null,
 };
 
+const hasFixedFrameAspectRatioLock = (
+  element: NonDeletedExcalidrawElement | null | undefined,
+) => {
+  if (!element || !isFrameLikeElement(element)) {
+    return false;
+  }
+
+  const fixedAspectRatio = element.customData?.fixedAspectRatio;
+  return (
+    (typeof fixedAspectRatio === "string" && fixedAspectRatio.trim().length > 0) ||
+    (typeof fixedAspectRatio === "number" && Number.isFinite(fixedAspectRatio) && fixedAspectRatio > 0)
+  );
+};
+
 class App extends React.Component<AppProps, AppState> {
   canvas: AppClassProperties["canvas"];
   interactiveCanvas: AppClassProperties["interactiveCanvas"] = null;
@@ -10935,6 +10949,12 @@ class App extends React.Component<AppProps, AppState> {
       });
     }
 
+    const shouldKeepAspectRatio =
+      (selectedElements.some((element) => isImageElement(element))
+        ? !shouldMaintainAspectRatio(event)
+        : shouldMaintainAspectRatio(event)) ||
+      (selectedElements.length === 1 && hasFixedFrameAspectRatioLock(selectedElements[0]));
+
     if (
       transformElements(
         pointerDownState.originalElements,
@@ -10943,9 +10963,7 @@ class App extends React.Component<AppProps, AppState> {
         this.scene,
         shouldRotateWithDiscreteAngle(event),
         shouldResizeFromCenter(event),
-        selectedElements.some((element) => isImageElement(element))
-          ? !shouldMaintainAspectRatio(event)
-          : shouldMaintainAspectRatio(event),
+        shouldKeepAspectRatio,
         resizeX,
         resizeY,
         pointerDownState.resize.center.x,
