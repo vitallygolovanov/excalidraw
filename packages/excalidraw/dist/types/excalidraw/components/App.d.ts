@@ -1,11 +1,10 @@
 import React from "react";
 import { type EXPORT_IMAGE_TYPES, Emitter } from "@excalidraw/common";
-import { LinearElementEditor, FlowChartCreator, Scene, Store, type ElementUpdate } from "@excalidraw/element";
+import { LinearElementEditor, FlowChartCreator, Scene, type ElementUpdate } from "@excalidraw/element";
 import type { ExcalidrawElement, NonDeleted, InitializedExcalidrawImageElement, ExcalidrawImageElement, NonDeletedExcalidrawElement, ExcalidrawFrameLikeElement, ExcalidrawIframeElement, ExcalidrawEmbeddableElement, Ordered } from "@excalidraw/element/types";
 import type { Mutable } from "@excalidraw/common/utility-types";
 import { ActionManager } from "../actions/manager";
 import { AnimationFrameHandler } from "../animation-frame-handler";
-import { History } from "../history";
 import { Fonts } from "../fonts";
 import { type WritableAtom } from "../editor-jotai";
 import { Renderer } from "../scene/Renderer";
@@ -97,6 +96,7 @@ declare class App extends React.Component<AppProps, AppState> {
     laserTrails: LaserTrails;
     eraserTrail: EraserTrail;
     lassoTrail: LassoTrail;
+    private followViewportDebugTrail;
     onChangeEmitter: Emitter<[elements: readonly ExcalidrawElement[], appState: AppState, files: BinaryFiles]>;
     onPointerDownEmitter: Emitter<[activeTool: {
         lastActiveTool: import("../types").ActiveTool | null;
@@ -558,19 +558,6 @@ declare class App extends React.Component<AppProps, AppState> {
     refresh: () => void;
     private getCanvasOffsets;
     private updateLanguage;
-}
-declare global {
-    interface Window {
-        h: {
-            scene: Scene;
-            elements: readonly ExcalidrawElement[];
-            state: AppState;
-            setState: React.Component<any, AppState>["setState"];
-            app: InstanceType<typeof App>;
-            history: History;
-            store: Store;
-        };
-    }
 }
 export declare const createTestHook: () => void;
 export default App;

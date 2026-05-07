@@ -53,6 +53,32 @@ function setFollowedCollaboratorViewport(args: {
   });
 }
 
+function flushAnimationFrames(args: {
+  animationFrames: ReturnType<typeof createManualAnimationFrames>;
+  startAt: number;
+  stepMs?: number;
+  maxFrames?: number;
+}) {
+  const {
+    animationFrames,
+    startAt,
+    stepMs = 16,
+    maxFrames = 40,
+  } = args;
+  let nextNow = startAt;
+  let remainingFrames = maxFrames;
+
+  while (animationFrames.length > 0 && remainingFrames > 0) {
+    animationFrames.runNext(nextNow);
+    nextNow += stepMs;
+    remainingFrames -= 1;
+  }
+
+  if (animationFrames.length > 0) {
+    throw new Error("Expected follow viewport animation frames to settle");
+  }
+}
+
 function createManualAnimationFrames() {
   const callbacks: FrameRequestCallback[] = [];
 
@@ -98,7 +124,7 @@ describe("followed collaborator viewport playback", () => {
     vi.restoreAllMocks();
   });
 
-  it("buffers followed viewport frames before applying the first remote camera frame", () => {
+  it("buffers followed viewport frames before targeting the first remote camera frame and then smooths toward it", () => {
     const animationFrames = createManualAnimationFrames();
     const socketId = "remote-1" as SocketId;
     const applySpy = vi.spyOn(h.app as never, "applyFollowedViewportFrame" as never);
@@ -113,26 +139,35 @@ describe("followed collaborator viewport playback", () => {
 
     setFollowedCollaboratorViewport({
       socketId,
-      frames: createViewportFrames([0, 1, 2, 3, 4, 5]),
+      frames: createViewportFrames([5, 6, 7, 8, 9, 10]),
     });
 
-    animationFrames.runNext(150);
+    animationFrames.runNext(280);
 
     expect(applySpy).not.toHaveBeenCalled();
     expect(h.state.scrollX).toBe(0);
     expect(h.state.scrollY).toBe(0);
 
-    animationFrames.runNext(170);
+    animationFrames.runNext(320);
 
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(applySpy).toHaveBeenCalledWith(
-      expect.objectContaining({ sequence: 0 }),
+      expect.objectContaining({ sequence: 5 }),
     );
     expect(h.state.scrollX).toBe(0);
     expect(h.state.scrollY).toBe(0);
+
+    animationFrames.runNext(336);
+    expect(h.state.scrollX).toBe(0);
+
+    animationFrames.runNext(352);
+    expect(h.state.scrollX).toBeGreaterThan(0);
+    expect(h.state.scrollX).toBeLessThan(50);
+    expect(h.state.scrollY).toBeLessThan(0);
+    expect(h.state.scrollY).toBeGreaterThan(-25);
   });
 
-  it("drops overdue frames and applies only the newest due frame per animation tick", () => {
+  it("drops overdue frames, targets only the newest due frame, and smooths instead of jumping", () => {
     const animationFrames = createManualAnimationFrames();
     const socketId = "remote-2" as SocketId;
     const applySpy = vi.spyOn(h.app as never, "applyFollowedViewportFrame" as never);
@@ -147,17 +182,26 @@ describe("followed collaborator viewport playback", () => {
 
     setFollowedCollaboratorViewport({
       socketId,
-      frames: createViewportFrames([0, 1, 2, 3, 4, 5]),
+      frames: createViewportFrames([5, 6, 7, 8, 9, 10]),
     });
 
-    animationFrames.runNext(260);
+    animationFrames.runNext(420);
 
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(applySpy).toHaveBeenCalledWith(
-      expect.objectContaining({ sequence: 5 }),
+      expect.objectContaining({ sequence: 10 }),
     );
-    expect(h.state.scrollX).toBe(50);
-    expect(h.state.scrollY).toBe(-25);
+    expect(h.state.scrollX).toBe(0);
+    expect(h.state.scrollY).toBe(0);
+
+    animationFrames.runNext(436);
+    expect(h.state.scrollX).toBe(0);
+
+    animationFrames.runNext(452);
+    expect(h.state.scrollX).toBeGreaterThan(0);
+    expect(h.state.scrollX).toBeLessThan(100);
+    expect(h.state.scrollY).toBeLessThan(0);
+    expect(h.state.scrollY).toBeGreaterThan(-50);
   });
 
   it("does not replay the same stale collaborator batch after playback drains", () => {
@@ -175,15 +219,27 @@ describe("followed collaborator viewport playback", () => {
 
     setFollowedCollaboratorViewport({
       socketId,
-      frames: createViewportFrames([0, 1, 2, 3, 4, 5]),
+      frames: createViewportFrames([5, 6, 7, 8, 9, 10]),
     });
 
-    animationFrames.runNext(260);
+    animationFrames.runNext(420);
 
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(applySpy).toHaveBeenLastCalledWith(
-      expect.objectContaining({ sequence: 5 }),
+      expect.objectContaining({ sequence: 10 }),
     );
+
+    flushAnimationFrames({
+      animationFrames,
+      startAt: 436,
+    });
+
+    setFollowedCollaboratorViewport({
+      socketId,
+      frames: createViewportFrames([5, 6, 7, 8, 9, 10]),
+    });
+
+    expect(applySpy).toHaveBeenCalledTimes(1);
     expect(animationFrames.length).toBe(0);
   });
 
@@ -202,28 +258,31 @@ describe("followed collaborator viewport playback", () => {
 
     setFollowedCollaboratorViewport({
       socketId,
-      frames: createViewportFrames([0, 1, 2, 3, 4, 5]),
+      frames: createViewportFrames([5, 6, 7, 8, 9, 10]),
     });
 
-    animationFrames.runNext(170);
+    animationFrames.runNext(280);
+    expect(applySpy).toHaveBeenCalledTimes(0);
+
+    animationFrames.runNext(320);
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(applySpy).toHaveBeenLastCalledWith(
-      expect.objectContaining({ sequence: 0 }),
+      expect.objectContaining({ sequence: 5 }),
     );
 
-    now = 200;
+    now = 360;
     setFollowedCollaboratorViewport({
       socketId,
-      frames: createViewportFrames([20, 21, 22, 23, 24, 25]),
+      frames: createViewportFrames([25, 26, 27, 28, 29, 30]),
     });
 
-    animationFrames.runNext(300);
+    animationFrames.runNext(620);
     expect(applySpy).toHaveBeenCalledTimes(1);
 
-    animationFrames.runNext(370);
+    animationFrames.runNext(680);
     expect(applySpy).toHaveBeenCalledTimes(2);
     expect(applySpy).toHaveBeenLastCalledWith(
-      expect.objectContaining({ sequence: 20 }),
+      expect.objectContaining({ sequence: 25 }),
     );
   });
 });

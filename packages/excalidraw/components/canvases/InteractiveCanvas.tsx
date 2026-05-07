@@ -35,6 +35,7 @@ type InteractiveCanvasProps = {
   scale: number;
   appState: InteractiveCanvasAppState;
   renderScrollbars: boolean;
+  renderRemoteCursorsOnCanvas: boolean;
   device: Device;
   renderInteractiveSceneCallback: (
     data: RenderInteractiveSceneCallback,
@@ -99,7 +100,11 @@ const InteractiveCanvas = (props: InteractiveCanvasProps) => {
           remoteSelectedElementIds.get(id)!.push(socketId);
         }
       }
-      if (!user.pointer || user.pointer.renderCursor === false) {
+      if (
+        !props.renderRemoteCursorsOnCanvas ||
+        !user.pointer ||
+        user.pointer.renderCursor === false
+      ) {
         return;
       }
       if (user.username) {
@@ -232,7 +237,9 @@ const areEqual = (
     prevProps.elementsMap !== nextProps.elementsMap ||
     prevProps.visibleElements !== nextProps.visibleElements ||
     prevProps.selectedElements !== nextProps.selectedElements ||
-    prevProps.renderScrollbars !== nextProps.renderScrollbars
+    prevProps.renderScrollbars !== nextProps.renderScrollbars ||
+    prevProps.renderRemoteCursorsOnCanvas !==
+      nextProps.renderRemoteCursorsOnCanvas
   ) {
     return false;
   }

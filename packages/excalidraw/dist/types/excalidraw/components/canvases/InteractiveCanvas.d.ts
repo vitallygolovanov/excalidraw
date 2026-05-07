@@ -15,6 +15,7 @@ type InteractiveCanvasProps = {
     scale: number;
     appState: InteractiveCanvasAppState;
     renderScrollbars: boolean;
+    renderRemoteCursorsOnCanvas: boolean;
     device: Device;
     renderInteractiveSceneCallback: (data: RenderInteractiveSceneCallback) => void;
     handleCanvasRef: (canvas: HTMLCanvasElement | null) => void;

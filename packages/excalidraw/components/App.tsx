@@ -464,6 +464,16 @@ import type {
 } from "../types";
 import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { Action, ActionResult } from "../actions/types";
+import {
+  clearFollowViewportSmoothingDebug,
+  ensureFollowViewportSmoothingLoop,
+  hasFollowViewportSmoothingTarget,
+  resetFollowViewportSmoothing,
+  runFollowViewportSmoothingTick,
+  setFollowViewportSmoothingTarget,
+  type FollowViewportCameraState,
+} from "./FollowMode/followViewportSmoother";
+import { FollowViewportDebugTrail } from "./FollowMode/followViewportDebugTrail";
 
 const AppContext = React.createContext<AppClassProperties>(null!);
 const AppPropsContext = React.createContext<AppProps>(null!);
@@ -561,6 +571,7 @@ const gesture: Gesture = {
   lastCenter: null,
   initialDistance: null,
   initialScale: null,
+  wasMultiTouchGesture: false,
 };
 
 const hasFixedFrameAspectRatioLock = (
@@ -635,6 +646,10 @@ class App extends React.Component<AppProps, AppState> {
   laserTrails = new LaserTrails(this.animationFrameHandler, this);
   eraserTrail = new EraserTrail(this.animationFrameHandler, this);
   lassoTrail = new LassoTrail(this.animationFrameHandler, this);
+  private followViewportDebugTrail = new FollowViewportDebugTrail(
+    this.animationFrameHandler,
+    this,
+  );
 
   onChangeEmitter = new Emitter<
     [
@@ -1719,6 +1734,7 @@ class App extends React.Component<AppProps, AppState> {
                             this.laserTrails,
                             this.lassoTrail,
                             this.eraserTrail,
+                            this.followViewportDebugTrail,
                           ]}
                         />
                         {selectedElements.length === 1 &&
@@ -1892,6 +1908,9 @@ class App extends React.Component<AppProps, AppState> {
                           appState={this.state}
                           renderScrollbars={
                             this.props.renderScrollbars === true
+                          }
+                          renderRemoteCursorsOnCanvas={
+                            this.props.renderRemoteCursorsOnCanvas !== false
                           }
                           device={this.device}
                           renderInteractiveSceneCallback={
@@ -2563,8 +2582,10 @@ class App extends React.Component<AppProps, AppState> {
       this.excalidrawContainerRef.current;
 
     if (isTestEnv() || isDevEnv()) {
+      const testWindow = window as Window & { h?: TestHookWindowState };
+      testWindow.h = testWindow.h || ({} as TestHookWindowState);
       const setState = this.setState.bind(this);
-      Object.defineProperties(window.h, {
+      Object.defineProperties(testWindow.h, {
         state: {
           configurable: true,
           get: () => {
@@ -2841,6 +2862,16 @@ class App extends React.Component<AppProps, AppState> {
     this.updateEmbeddables();
     const elements = this.scene.getElementsIncludingDeleted();
     const elementsMap = this.scene.getElementsMapIncludingDeleted();
+
+    const shouldRestartFollowViewportDebugTrail =
+      this.props.debugFollowViewportSmoothingVisible &&
+      !!this.state.userToFollow &&
+      (!prevProps.debugFollowViewportSmoothingVisible ||
+        prevState.userToFollow !== this.state.userToFollow);
+
+    if (shouldRestartFollowViewportDebugTrail) {
+      this.followViewportDebugTrail.restart();
+    }
 
     if (!this.state.showWelcomeScreen && !elements.length) {
       this.setState({ showWelcomeScreen: true });
@@ -3762,6 +3793,7 @@ class App extends React.Component<AppProps, AppState> {
 
   private resetFollowedViewportPlayback = (opts?: {
     preserveSequenceState?: boolean;
+    resetSmoothing?: boolean;
   }) => {
     if (this.followedViewportPlaybackRafId != null) {
       cancelAnimationFrame(this.followedViewportPlaybackRafId);
@@ -3773,6 +3805,14 @@ class App extends React.Component<AppProps, AppState> {
     this.followedViewportPlaybackStartAt = null;
     this.followedViewportPlaybackIntervalMs =
       FOLLOW_VIEWPORT_DEFAULT_FRAME_INTERVAL_MS;
+
+    if (opts?.resetSmoothing !== false) {
+      resetFollowViewportSmoothing({
+        owner: this,
+        cancelAnimationFrame: (rafId) => window.cancelAnimationFrame(rafId),
+      });
+      clearFollowViewportSmoothingDebug(this);
+    }
 
     if (!opts?.preserveSequenceState) {
       this.lastQueuedFollowedViewportSequence = null;
@@ -3793,22 +3833,74 @@ class App extends React.Component<AppProps, AppState> {
 
   private applyFollowedViewportFrame = (frame: CollaboratorViewportFrame) => {
     const zoomValue = getNormalizedZoom(frame.zoomValue);
-    const cameraAlreadyMatches =
-      this.state.scrollX === frame.scrollX &&
-      this.state.scrollY === frame.scrollY &&
-      this.state.zoom.value === zoomValue;
 
     this.lastAppliedFollowedViewportSequence = frame.sequence;
 
-    if (cameraAlreadyMatches) {
-      return;
-    }
+    setFollowViewportSmoothingTarget({
+      owner: this,
+      target: {
+        sequence: frame.sequence,
+        scrollX: frame.scrollX,
+        scrollY: frame.scrollY,
+        zoomValue,
+      },
+      viewportWidth: this.state.width,
+      viewportHeight: this.state.height,
+    });
 
-    this.cancelInProgressAnimation?.();
-    this.setState({
-      scrollX: frame.scrollX,
-      scrollY: frame.scrollY,
-      zoom: { value: zoomValue },
+    const continueSmoothing: FrameRequestCallback = (now) => {
+      if (this.unmounted || !this.state.userToFollow) {
+        resetFollowViewportSmoothing({
+          owner: this,
+          cancelAnimationFrame: (rafId) => window.cancelAnimationFrame(rafId),
+        });
+        return;
+      }
+
+      const nextCamera = runFollowViewportSmoothingTick({
+        owner: this,
+        now,
+        current: {
+          scrollX: this.state.scrollX,
+          scrollY: this.state.scrollY,
+          zoomValue: this.state.zoom.value,
+        } satisfies FollowViewportCameraState,
+        viewportWidth: this.state.width,
+        viewportHeight: this.state.height,
+      });
+
+      if (nextCamera) {
+        const nextZoomValue = getNormalizedZoom(nextCamera.zoomValue);
+        const cameraAlreadyMatches =
+          this.state.scrollX === nextCamera.scrollX &&
+          this.state.scrollY === nextCamera.scrollY &&
+          this.state.zoom.value === nextZoomValue;
+
+        if (!cameraAlreadyMatches) {
+          this.cancelInProgressAnimation?.();
+          this.setState({
+            scrollX: nextCamera.scrollX,
+            scrollY: nextCamera.scrollY,
+            zoom: { value: nextZoomValue },
+          });
+        }
+      }
+
+      if (hasFollowViewportSmoothingTarget(this)) {
+        ensureFollowViewportSmoothingLoop({
+          owner: this,
+          requestAnimationFrame: (callback) =>
+            window.requestAnimationFrame(callback),
+          onTick: continueSmoothing,
+        });
+      }
+    };
+
+    ensureFollowViewportSmoothingLoop({
+      owner: this,
+      requestAnimationFrame: (callback) =>
+        window.requestAnimationFrame(callback),
+      onTick: continueSmoothing,
     });
   };
 
@@ -3825,7 +3917,10 @@ class App extends React.Component<AppProps, AppState> {
       this.followedViewportPlaybackStartAt == null ||
       this.followedViewportFrameQueue.length === 0
     ) {
-      this.resetFollowedViewportPlayback({ preserveSequenceState: true });
+      this.resetFollowedViewportPlayback({
+        preserveSequenceState: true,
+        resetSmoothing: false,
+      });
       return;
     }
 
@@ -3861,7 +3956,10 @@ class App extends React.Component<AppProps, AppState> {
       return;
     }
 
-    this.resetFollowedViewportPlayback({ preserveSequenceState: true });
+    this.resetFollowedViewportPlayback({
+      preserveSequenceState: true,
+      resetSmoothing: false,
+    });
   };
 
   private ensureFollowedViewportPlaybackLoop = () => {
@@ -3914,6 +4012,10 @@ class App extends React.Component<AppProps, AppState> {
       lastQueuedFrame &&
       firstIncomingFrame.sequence > lastQueuedFrame.sequence + 1
     ) {
+      resetFollowViewportSmoothing({
+        owner: this,
+        cancelAnimationFrame: (rafId) => window.cancelAnimationFrame(rafId),
+      });
       this.rebaseFollowedViewportPlayback(sortedFrames, now);
       this.ensureFollowedViewportPlaybackLoop();
       return;
@@ -7215,12 +7317,19 @@ class App extends React.Component<AppProps, AppState> {
   private updateGestureOnPointerDown(
     event: React.PointerEvent<HTMLElement>,
   ): void {
+    if (event.pointerType === "touch" && gesture.pointers.size === 0) {
+      gesture.wasMultiTouchGesture = false;
+    }
+
     gesture.pointers.set(event.pointerId, {
       x: event.clientX,
       y: event.clientY,
     });
 
     if (gesture.pointers.size === 2) {
+      if (event.pointerType === "touch") {
+        gesture.wasMultiTouchGesture = true;
+      }
       gesture.lastCenter = getCenter(gesture.pointers);
       gesture.initialScale = this.state.zoom.value;
       gesture.initialDistance = getDistance(
@@ -11484,6 +11593,15 @@ class App extends React.Component<AppProps, AppState> {
     if (!x || !y) {
       return;
     }
+
+    if (isPanning) {
+      return;
+    }
+
+    const shouldHideForTouchGesture =
+      this.state.lastPointerDownWith === "touch" &&
+      (gesture.pointers.size > 1 || gesture.wasMultiTouchGesture);
+
     const { x: sceneX, y: sceneY } = viewportCoordsToSceneCoords(
       { clientX: x, clientY: y },
       this.state,
@@ -11497,6 +11615,7 @@ class App extends React.Component<AppProps, AppState> {
       x: sceneX,
       y: sceneY,
       tool: this.state.activeTool.type === "laser" ? "laser" : "pointer",
+      ...(shouldHideForTouchGesture ? { renderCursor: false } : {}),
     };
 
     this.props.onPointerUpdate?.({
@@ -11537,7 +11656,6 @@ class App extends React.Component<AppProps, AppState> {
         if (cb) {
           cb();
         }
-        return;
       }
 
       this.setState(
@@ -11582,28 +11700,22 @@ class App extends React.Component<AppProps, AppState> {
   }
 }
 
-// -----------------------------------------------------------------------------
-// TEST HOOKS
-// -----------------------------------------------------------------------------
-declare global {
-  interface Window {
-    h: {
-      scene: Scene;
-      elements: readonly ExcalidrawElement[];
-      state: AppState;
-      setState: React.Component<any, AppState>["setState"];
-      app: InstanceType<typeof App>;
-      history: History;
-      store: Store;
-    };
-  }
-}
+type TestHookWindowState = {
+  scene: Scene;
+  elements: readonly ExcalidrawElement[];
+  state: AppState;
+  setState: React.Component<any, AppState>["setState"];
+  app: InstanceType<typeof App>;
+  history: History;
+  store: Store;
+};
 
 export const createTestHook = () => {
   if (isTestEnv() || isDevEnv()) {
-    window.h = window.h || ({} as Window["h"]);
+    const testWindow = window as Window & { h?: TestHookWindowState };
+    testWindow.h = testWindow.h || ({} as TestHookWindowState);
 
-    Object.defineProperties(window.h, {
+    Object.defineProperties(testWindow.h, {
       elements: {
         configurable: true,
         get() {

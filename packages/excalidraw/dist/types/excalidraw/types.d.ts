@@ -393,6 +393,7 @@ export type Gesture = {
     } | null;
     initialDistance: number | null;
     initialScale: number | null;
+    wasMultiTouchGesture: boolean;
 };
 export declare class GestureEvent extends UIEvent {
     readonly rotation: number;
@@ -435,6 +436,7 @@ export interface ExcalidrawProps {
             x: number;
             y: number;
             tool: "pointer" | "laser";
+            renderCursor?: boolean;
         };
         button: "down" | "up";
         pointersMap: Gesture["pointers"];
@@ -497,7 +499,9 @@ export interface ExcalidrawProps {
     aiEnabled?: boolean;
     showDeprecatedFonts?: boolean;
     renderScrollbars?: boolean;
+    renderRemoteCursorsOnCanvas?: boolean;
     customFileResolutionEnabled?: boolean;
+    debugFollowViewportSmoothingVisible?: boolean;
 }
 export type SceneData = {
     elements?: ImportedDataState["elements"];
