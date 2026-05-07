@@ -126,6 +126,7 @@ export declare const actionToggleSearchMenu: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {

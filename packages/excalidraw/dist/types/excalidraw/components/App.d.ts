@@ -240,6 +240,16 @@ declare class App extends React.Component<AppProps, AppState> {
     onScrollChangeEmitter: Emitter<[scrollX: number, scrollY: number, zoom: Readonly<{
         value: import("../types").NormalizedZoomValue;
     }>]>;
+    private followedViewportFrameQueue;
+    private followedViewportPlaybackRafId;
+    private followedViewportPlaybackBaseSequence;
+    private followedViewportPlaybackStartAt;
+    private followedViewportPlaybackIntervalMs;
+    private lastQueuedFollowedViewportSequence;
+    private lastAppliedFollowedViewportSequence;
+    private clampFollowedViewportFrameIntervalMs;
+    private sanitizeFollowedViewportFrames;
+    private rebaseFollowedViewportPlayback;
     missingPointerEventCleanupEmitter: Emitter<[event: PointerEvent | null]>;
     onRemoveEventListenersEmitter: Emitter<[]>;
     constructor(props: AppProps);
@@ -344,6 +354,12 @@ declare class App extends React.Component<AppProps, AppState> {
      */
     zoomCanvas: (value: number) => void;
     private cancelInProgressAnimation;
+    private resetFollowedViewportPlayback;
+    private getFollowedCollaboratorViewport;
+    private applyFollowedViewportFrame;
+    private followedViewportPlaybackTick;
+    private ensureFollowedViewportPlaybackLoop;
+    private maybeQueueFollowedUserViewportFrames;
     scrollToContent: (target?: string | ExcalidrawElement | readonly ExcalidrawElement[], opts?: ({
         fitToContent?: boolean;
         fitToViewport?: never;

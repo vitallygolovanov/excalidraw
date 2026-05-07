@@ -157,6 +157,7 @@ export declare const actionClearCanvas: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -332,6 +333,7 @@ export declare const actionZoomIn: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -519,6 +521,7 @@ export declare const actionZoomOut: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -706,6 +709,7 @@ export declare const actionResetZoom: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -899,6 +903,7 @@ export declare const zoomToFitBounds: ({ bounds, appState, canvasOffsets, fitToV
             selectedElementIds?: Readonly<{
                 [id: string]: true;
             }> | undefined;
+            viewport?: import("../types").CollaboratorViewport | undefined;
             username?: string | null | undefined;
             userState?: import("@excalidraw/common").UserIdleState | undefined;
             color?: {
@@ -1088,6 +1093,7 @@ export declare const zoomToFit: ({ canvasOffsets, targetElements, appState, fitT
             selectedElementIds?: Readonly<{
                 [id: string]: true;
             }> | undefined;
+            viewport?: import("../types").CollaboratorViewport | undefined;
             username?: string | null | undefined;
             userState?: import("@excalidraw/common").UserIdleState | undefined;
             color?: {
@@ -1269,6 +1275,7 @@ export declare const actionZoomToFitSelectionInViewport: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1454,6 +1461,7 @@ export declare const actionZoomToFitSelection: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1640,6 +1648,7 @@ export declare const actionZoomToFit: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1827,6 +1836,7 @@ export declare const actionToggleTheme: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -2005,6 +2015,7 @@ export declare const actionToggleEraserTool: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -2183,6 +2194,7 @@ export declare const actionToggleLassoTool: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -2361,6 +2373,7 @@ export declare const actionToggleHandTool: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {

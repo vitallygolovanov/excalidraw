@@ -66,10 +66,23 @@ import type { JSX } from "react";
 
 export type SocketId = string & { _brand: "SocketId" };
 
+export type CollaboratorViewportFrame = {
+  sequence: number;
+  scrollX: number;
+  scrollY: number;
+  zoomValue: number;
+};
+
+export type CollaboratorViewport = {
+  frameIntervalMs: number;
+  frames: readonly CollaboratorViewportFrame[];
+};
+
 export type Collaborator = Readonly<{
   pointer?: CollaboratorPointer;
   button?: "up" | "down";
   selectedElementIds?: AppState["selectedElementIds"];
+  viewport?: CollaboratorViewport;
   username?: string | null;
   userState?: UserIdleState;
   color?: {

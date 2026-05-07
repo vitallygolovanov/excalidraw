@@ -150,6 +150,7 @@ export declare const actionBindText: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -335,6 +336,7 @@ export declare const actionWrapTextInContainer: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {

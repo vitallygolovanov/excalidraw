@@ -160,6 +160,7 @@ export declare const actionChangeFillStyle: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -343,6 +344,7 @@ export declare const actionChangeStrokeWidth: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -526,6 +528,7 @@ export declare const actionChangeSloppiness: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -709,6 +712,7 @@ export declare const actionChangeStrokeStyle: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -892,6 +896,7 @@ export declare const actionChangeOpacity: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1075,6 +1080,7 @@ export declare const actionChangeFontSize: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1259,6 +1265,7 @@ export declare const actionDecreaseFontSize: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1443,6 +1450,7 @@ export declare const actionIncreaseFontSize: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1625,6 +1633,7 @@ export declare const actionChangeFontFamily: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1799,6 +1808,7 @@ export declare const actionChangeFontFamily: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -1982,6 +1992,7 @@ export declare const actionChangeTextAlign: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -2167,6 +2178,7 @@ export declare const actionChangeVerticalAlign: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -2350,6 +2362,7 @@ export declare const actionChangeRoundness: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -2536,6 +2549,7 @@ export declare const actionChangeArrowhead: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -2719,6 +2733,7 @@ export declare const actionChangeArrowType: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {

@@ -131,6 +131,7 @@ export declare const actionSelectAllElementsInFrame: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -320,6 +321,7 @@ export declare const actionRemoveAllElementsFromFrame: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -510,6 +512,7 @@ export declare const actionupdateFrameRendering: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {
@@ -697,6 +700,7 @@ export declare const actionSetFrameAsActiveTool: {
                 selectedElementIds?: Readonly<{
                     [id: string]: true;
                 }> | undefined;
+                viewport?: import("../types").CollaboratorViewport | undefined;
                 username?: string | null | undefined;
                 userState?: import("@excalidraw/common").UserIdleState | undefined;
                 color?: {

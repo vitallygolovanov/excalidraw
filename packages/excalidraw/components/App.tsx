@@ -449,6 +449,8 @@ import type {
   SidebarName,
   SidebarTabName,
   KeyboardModifiersObject,
+  Collaborator,
+  CollaboratorViewportFrame,
   CollaboratorPointer,
   ToolType,
   OnUserFollowedPayload,
@@ -479,6 +481,12 @@ const deviceContextInitialValue = {
 };
 const DeviceContext = React.createContext<Device>(deviceContextInitialValue);
 DeviceContext.displayName = "DeviceContext";
+
+const FOLLOW_VIEWPORT_TARGET_BUFFER_MS = 400;
+const FOLLOW_VIEWPORT_DEFAULT_FRAME_INTERVAL_MS = 40;
+const FOLLOW_VIEWPORT_MIN_FRAME_INTERVAL_MS = 8;
+const FOLLOW_VIEWPORT_MAX_FRAME_INTERVAL_MS = 100;
+const FOLLOW_VIEWPORT_MAX_BATCH_SIZE = 64;
 
 export const ExcalidrawContainerContext = React.createContext<{
   container: HTMLDivElement | null;
@@ -655,6 +663,79 @@ class App extends React.Component<AppProps, AppState> {
   onScrollChangeEmitter = new Emitter<
     [scrollX: number, scrollY: number, zoom: AppState["zoom"]]
   >();
+  private followedViewportFrameQueue: CollaboratorViewportFrame[] = [];
+  private followedViewportPlaybackRafId: number | null = null;
+  private followedViewportPlaybackBaseSequence: number | null = null;
+  private followedViewportPlaybackStartAt: number | null = null;
+  private followedViewportPlaybackIntervalMs =
+    FOLLOW_VIEWPORT_DEFAULT_FRAME_INTERVAL_MS;
+  private lastQueuedFollowedViewportSequence: number | null = null;
+  private lastAppliedFollowedViewportSequence: number | null = null;
+
+  private clampFollowedViewportFrameIntervalMs = (frameIntervalMs: number) => {
+    if (!Number.isFinite(frameIntervalMs) || frameIntervalMs <= 0) {
+      return FOLLOW_VIEWPORT_DEFAULT_FRAME_INTERVAL_MS;
+    }
+
+    return clamp(
+      frameIntervalMs,
+      FOLLOW_VIEWPORT_MIN_FRAME_INTERVAL_MS,
+      FOLLOW_VIEWPORT_MAX_FRAME_INTERVAL_MS,
+    );
+  };
+
+  private sanitizeFollowedViewportFrames = (
+    frames: readonly CollaboratorViewportFrame[],
+  ) => {
+    const sanitizedFrames: CollaboratorViewportFrame[] = [];
+    const limitedFrames = frames.slice(-FOLLOW_VIEWPORT_MAX_BATCH_SIZE);
+
+    for (const frame of limitedFrames) {
+      if (
+        !Number.isFinite(frame.sequence) ||
+        !Number.isFinite(frame.scrollX) ||
+        !Number.isFinite(frame.scrollY) ||
+        !Number.isFinite(frame.zoomValue) ||
+        frame.zoomValue <= 0
+      ) {
+        continue;
+      }
+
+      sanitizedFrames.push(frame);
+    }
+
+    sanitizedFrames.sort((frame1, frame2) => frame1.sequence - frame2.sequence);
+
+    return sanitizedFrames.filter((frame, index) => {
+      const previousFrame = sanitizedFrames[index - 1];
+      return !previousFrame || frame.sequence > previousFrame.sequence;
+    });
+  };
+
+  private rebaseFollowedViewportPlayback = (
+    frames: readonly CollaboratorViewportFrame[],
+    now: number,
+  ) => {
+    if (!frames.length) {
+      this.resetFollowedViewportPlayback();
+      return;
+    }
+
+    const latestFrame = frames[frames.length - 1];
+    const targetBufferFrames = Math.max(
+      1,
+      Math.ceil(
+        FOLLOW_VIEWPORT_TARGET_BUFFER_MS /
+          this.followedViewportPlaybackIntervalMs,
+      ),
+    );
+
+    this.followedViewportFrameQueue = [...frames];
+    this.followedViewportPlaybackBaseSequence =
+      latestFrame.sequence - targetBufferFrames;
+    this.followedViewportPlaybackStartAt = now;
+    this.lastQueuedFollowedViewportSequence = latestFrame.sequence;
+  };
 
   missingPointerEventCleanupEmitter = new Emitter<
     [event: PointerEvent | null]
@@ -2590,6 +2671,7 @@ class App extends React.Component<AppProps, AppState> {
     this.store.onDurableIncrementEmitter.clear();
     ShapeCache.destroy();
     SnapCache.destroy();
+    this.resetFollowedViewportPlayback();
     clearTimeout(touchTimeout);
     isSomeElementSelected.clearCache();
     selectGroupsForSelectedElements.clearCache();
@@ -2779,6 +2861,8 @@ class App extends React.Component<AppProps, AppState> {
     if (hasFollowedPersonLeft) {
       this.maybeUnfollowRemoteUser();
     }
+
+    this.maybeQueueFollowedUserViewportFrames(prevState);
 
     if (
       prevState.zoom.value !== this.state.zoom.value ||
@@ -3675,6 +3759,201 @@ class App extends React.Component<AppProps, AppState> {
   };
 
   private cancelInProgressAnimation: (() => void) | null = null;
+
+  private resetFollowedViewportPlayback = (opts?: {
+    preserveSequenceState?: boolean;
+  }) => {
+    if (this.followedViewportPlaybackRafId != null) {
+      cancelAnimationFrame(this.followedViewportPlaybackRafId);
+      this.followedViewportPlaybackRafId = null;
+    }
+
+    this.followedViewportFrameQueue = [];
+    this.followedViewportPlaybackBaseSequence = null;
+    this.followedViewportPlaybackStartAt = null;
+    this.followedViewportPlaybackIntervalMs =
+      FOLLOW_VIEWPORT_DEFAULT_FRAME_INTERVAL_MS;
+
+    if (!opts?.preserveSequenceState) {
+      this.lastQueuedFollowedViewportSequence = null;
+      this.lastAppliedFollowedViewportSequence = null;
+    }
+  };
+
+  private getFollowedCollaboratorViewport = (
+    userToFollow: AppState["userToFollow"],
+    collaborators: AppState["collaborators"],
+  ) => {
+    if (!userToFollow) {
+      return null;
+    }
+
+    return collaborators.get(userToFollow.socketId)?.viewport ?? null;
+  };
+
+  private applyFollowedViewportFrame = (frame: CollaboratorViewportFrame) => {
+    const zoomValue = getNormalizedZoom(frame.zoomValue);
+    const cameraAlreadyMatches =
+      this.state.scrollX === frame.scrollX &&
+      this.state.scrollY === frame.scrollY &&
+      this.state.zoom.value === zoomValue;
+
+    this.lastAppliedFollowedViewportSequence = frame.sequence;
+
+    if (cameraAlreadyMatches) {
+      return;
+    }
+
+    this.cancelInProgressAnimation?.();
+    this.setState({
+      scrollX: frame.scrollX,
+      scrollY: frame.scrollY,
+      zoom: { value: zoomValue },
+    });
+  };
+
+  private followedViewportPlaybackTick = (now: number) => {
+    this.followedViewportPlaybackRafId = null;
+
+    if (this.unmounted || !this.state.userToFollow) {
+      this.resetFollowedViewportPlayback();
+      return;
+    }
+
+    if (
+      this.followedViewportPlaybackBaseSequence == null ||
+      this.followedViewportPlaybackStartAt == null ||
+      this.followedViewportFrameQueue.length === 0
+    ) {
+      this.resetFollowedViewportPlayback({ preserveSequenceState: true });
+      return;
+    }
+
+    let latestDueFrame: CollaboratorViewportFrame | null = null;
+
+    while (this.followedViewportFrameQueue.length > 0) {
+      const nextFrame = this.followedViewportFrameQueue[0];
+      const dueAt =
+        this.followedViewportPlaybackStartAt +
+        (nextFrame.sequence - this.followedViewportPlaybackBaseSequence) *
+          this.followedViewportPlaybackIntervalMs;
+
+      if (now < dueAt) {
+        break;
+      }
+
+      this.followedViewportFrameQueue.shift();
+
+      if (
+        this.lastAppliedFollowedViewportSequence == null ||
+        nextFrame.sequence > this.lastAppliedFollowedViewportSequence
+      ) {
+        latestDueFrame = nextFrame;
+      }
+    }
+
+    if (latestDueFrame) {
+      this.applyFollowedViewportFrame(latestDueFrame);
+    }
+
+    if (this.followedViewportFrameQueue.length > 0) {
+      this.ensureFollowedViewportPlaybackLoop();
+      return;
+    }
+
+    this.resetFollowedViewportPlayback({ preserveSequenceState: true });
+  };
+
+  private ensureFollowedViewportPlaybackLoop = () => {
+    if (this.unmounted || this.followedViewportPlaybackRafId != null) {
+      return;
+    }
+
+    this.followedViewportPlaybackRafId = requestAnimationFrame(
+      this.followedViewportPlaybackTick,
+    );
+  };
+
+  private maybeQueueFollowedUserViewportFrames = (prevState: AppState) => {
+    const { userToFollow, collaborators } = this.state;
+
+    if (!userToFollow) {
+      this.resetFollowedViewportPlayback();
+      return;
+    }
+
+    if (prevState.userToFollow !== userToFollow) {
+      this.resetFollowedViewportPlayback();
+    }
+
+    const viewport = this.getFollowedCollaboratorViewport(
+      userToFollow,
+      collaborators,
+    );
+
+    if (!viewport?.frames?.length) {
+      return;
+    }
+
+    const sortedFrames = this.sanitizeFollowedViewportFrames(viewport.frames);
+
+    if (!sortedFrames.length) {
+      return;
+    }
+
+    this.followedViewportPlaybackIntervalMs =
+      this.clampFollowedViewportFrameIntervalMs(viewport.frameIntervalMs);
+
+    const now = performance.now();
+    const lastQueuedFrame =
+      this.followedViewportFrameQueue[this.followedViewportFrameQueue.length - 1] ??
+      null;
+    const firstIncomingFrame = sortedFrames[0];
+
+    if (
+      lastQueuedFrame &&
+      firstIncomingFrame.sequence > lastQueuedFrame.sequence + 1
+    ) {
+      this.rebaseFollowedViewportPlayback(sortedFrames, now);
+      this.ensureFollowedViewportPlaybackLoop();
+      return;
+    }
+
+    if (
+      this.followedViewportPlaybackBaseSequence == null ||
+      this.followedViewportPlaybackStartAt == null
+    ) {
+      this.rebaseFollowedViewportPlayback(sortedFrames, now);
+      this.ensureFollowedViewportPlaybackLoop();
+      return;
+    }
+
+    let didEnqueueFrame = false;
+
+    for (const frame of sortedFrames) {
+      if (
+        this.lastAppliedFollowedViewportSequence != null &&
+        frame.sequence <= this.lastAppliedFollowedViewportSequence
+      ) {
+        continue;
+      }
+
+      if (
+        this.lastQueuedFollowedViewportSequence != null &&
+        frame.sequence <= this.lastQueuedFollowedViewportSequence
+      ) {
+        continue;
+      }
+
+      this.followedViewportFrameQueue.push(frame);
+      this.lastQueuedFollowedViewportSequence = frame.sequence;
+      didEnqueueFrame = true;
+    }
+
+    if (didEnqueueFrame) {
+      this.ensureFollowedViewportPlaybackLoop();
+    }
+  };
 
   scrollToContent = (
     /**
