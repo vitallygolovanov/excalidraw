@@ -204,8 +204,14 @@ export const syncInvalidIndices = (
   elements: readonly ExcalidrawElement[],
 ): OrderedExcalidrawElement[] => {
   const elementsMap = arrayToMap(elements);
-  const indicesGroups = getInvalidIndicesGroups(elements);
-  const elementsUpdates = generateIndices(elements, indicesGroups);
+  let elementsUpdates = new Map<ExcalidrawElement, { index: FractionalIndex }>();
+
+  try {
+    const indicesGroups = getInvalidIndicesGroups(elements);
+    elementsUpdates = generateIndices(elements, indicesGroups);
+  } catch {
+    elementsUpdates = reindexAllElements(elements);
+  }
 
   for (const [element, { index }] of elementsUpdates) {
     mutateElement(element, elementsMap, { index });
@@ -223,8 +229,14 @@ export const syncInvalidIndicesImmutable = (
   elements: readonly ExcalidrawElement[],
 ): SceneElementsMap | undefined => {
   const syncedElements = arrayToMap(elements);
-  const indicesGroups = getInvalidIndicesGroups(elements);
-  const elementsUpdates = generateIndices(elements, indicesGroups);
+  let elementsUpdates = new Map<ExcalidrawElement, { index: FractionalIndex }>();
+
+  try {
+    const indicesGroups = getInvalidIndicesGroups(elements);
+    elementsUpdates = generateIndices(elements, indicesGroups);
+  } catch {
+    elementsUpdates = reindexAllElements(elements);
+  }
 
   for (const [element, { index }] of elementsUpdates) {
     syncedElements.set(element.id, newElementWith(element, { index }));
@@ -426,6 +438,27 @@ const generateIndices = (
         index: fractionalIndices[i],
       });
     }
+  }
+
+  return elementsUpdates;
+};
+
+const reindexAllElements = (elements: readonly ExcalidrawElement[]) => {
+  const elementsUpdates = new Map<
+    ExcalidrawElement,
+    { index: FractionalIndex }
+  >();
+  let lowerBound: FractionalIndex | undefined = undefined;
+
+  for (const element of elements) {
+    const [index] = generateNKeysBetween(
+      lowerBound,
+      undefined,
+      1,
+    ) as FractionalIndex[];
+
+    elementsUpdates.set(element, { index });
+    lowerBound = index;
   }
 
   return elementsUpdates;

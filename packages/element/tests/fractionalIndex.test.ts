@@ -210,6 +210,21 @@ describe("sync invalid indices with array order", () => {
     });
   });
 
+  describe("should fallback to full reindex when invalid bounds collapse to the same key", () => {
+    testInvalidIndicesSync({
+      elements: [
+        { id: "A", index: "a1" },
+        { id: "B", index: "b1" },
+        { id: "C", index: "a0" },
+        { id: "D", index: "b1" },
+        { id: "E", index: "c1" },
+      ],
+      expect: {
+        unchangedElements: [],
+      },
+    });
+  });
+
   describe("should sync when incorrect fractional index is on top and duplicated below", () => {
     testMovedIndicesSync({
       elements: [
