@@ -640,6 +640,8 @@ class App extends React.Component<AppProps, AppState> {
   lastPointerMoveEvent: PointerEvent | null = null;
   lastPointerMoveCoords: { x: number; y: number } | null = null;
   lastViewportPosition = { x: 0, y: 0 };
+  private latestFollowViewportZoomAnchorRatios: { x: number; y: number } | null =
+    null;
 
   animationFrameHandler = new AnimationFrameHandler();
 
@@ -716,7 +718,24 @@ class App extends React.Component<AppProps, AppState> {
         continue;
       }
 
-      sanitizedFrames.push(frame);
+      const anchorViewportXRatio =
+        Number.isFinite(frame.anchorViewportXRatio) &&
+        frame.anchorViewportXRatio! >= 0 &&
+        frame.anchorViewportXRatio! <= 1
+          ? frame.anchorViewportXRatio
+          : undefined;
+      const anchorViewportYRatio =
+        Number.isFinite(frame.anchorViewportYRatio) &&
+        frame.anchorViewportYRatio! >= 0 &&
+        frame.anchorViewportYRatio! <= 1
+          ? frame.anchorViewportYRatio
+          : undefined;
+
+      sanitizedFrames.push({
+        ...frame,
+        anchorViewportXRatio,
+        anchorViewportYRatio,
+      });
     }
 
     sanitizedFrames.sort((frame1, frame2) => frame1.sequence - frame2.sequence);
@@ -818,6 +837,8 @@ class App extends React.Component<AppProps, AppState> {
         scrollToContent: this.scrollToContent,
         getSceneElements: this.getSceneElements,
         getAppState: () => this.state,
+        getLatestFollowViewportZoomAnchorRatios:
+          this.getLatestFollowViewportZoomAnchorRatios,
         getFiles: () => this.files,
         getName: this.getName,
         registerAction: (action: Action) => {
@@ -3777,6 +3798,11 @@ class App extends React.Component<AppProps, AppState> {
      */
     value: number,
   ) => {
+    this.rememberFollowViewportZoomAnchor(
+      this.state.width / 2 + this.state.offsetLeft,
+      this.state.height / 2 + this.state.offsetTop,
+    );
+
     this.setState({
       ...getStateForZoom(
         {
@@ -3843,6 +3869,8 @@ class App extends React.Component<AppProps, AppState> {
         scrollX: frame.scrollX,
         scrollY: frame.scrollY,
         zoomValue,
+        anchorViewportXRatio: frame.anchorViewportXRatio,
+        anchorViewportYRatio: frame.anchorViewportYRatio,
       },
       viewportWidth: this.state.width,
       viewportHeight: this.state.height,
@@ -5282,6 +5310,11 @@ class App extends React.Component<AppProps, AppState> {
 
     const initialScale = gesture.initialScale;
     if (initialScale) {
+      this.rememberFollowViewportZoomAnchor(
+        this.lastViewportPosition.x,
+        this.lastViewportPosition.y,
+      );
+
       this.setState((state) => ({
         ...getStateForZoom(
           {
@@ -6181,6 +6214,8 @@ class App extends React.Component<AppProps, AppState> {
       const nextZoom = scaleFactor
         ? getNormalizedZoom(initialScale * scaleFactor)
         : this.state.zoom.value;
+
+      this.rememberFollowViewportZoomAnchor(center.x, center.y);
 
       this.setState((state) => {
         const zoomState = getStateForZoom(
@@ -11523,6 +11558,11 @@ class App extends React.Component<AppProps, AppState> {
           // reduced amplification for small deltas (small movements on a trackpad)
           Math.min(1, absDelta / 20);
 
+        this.rememberFollowViewportZoomAnchor(
+          this.lastViewportPosition.x,
+          this.lastViewportPosition.y,
+        );
+
         this.translateCanvas((state) => ({
           ...getStateForZoom(
             {
@@ -11588,6 +11628,39 @@ class App extends React.Component<AppProps, AppState> {
       }
     }
   }
+
+  private rememberFollowViewportZoomAnchor(
+    viewportX: number,
+    viewportY: number,
+    appState: Pick<
+      AppState,
+      "width" | "height" | "offsetLeft" | "offsetTop"
+    > = this.state,
+  ) {
+    if (
+      !Number.isFinite(appState.width) ||
+      appState.width <= 0 ||
+      !Number.isFinite(appState.height) ||
+      appState.height <= 0 ||
+      !Number.isFinite(viewportX) ||
+      !Number.isFinite(viewportY)
+    ) {
+      this.latestFollowViewportZoomAnchorRatios = null;
+      return;
+    }
+
+    const appLayerX = viewportX - appState.offsetLeft;
+    const appLayerY = viewportY - appState.offsetTop;
+
+    this.latestFollowViewportZoomAnchorRatios = {
+      x: clamp(appLayerX / appState.width, 0, 1),
+      y: clamp(appLayerY / appState.height, 0, 1),
+    };
+  }
+
+  private getLatestFollowViewportZoomAnchorRatios = () => {
+    return this.latestFollowViewportZoomAnchorRatios;
+  };
 
   private savePointer = (x: number, y: number, button: "up" | "down") => {
     if (!x || !y) {

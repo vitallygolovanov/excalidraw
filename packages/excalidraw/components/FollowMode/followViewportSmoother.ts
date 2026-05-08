@@ -6,6 +6,8 @@ export type FollowViewportCameraState = {
 
 export type FollowViewportTarget = FollowViewportCameraState & {
   sequence: number;
+  anchorViewportXRatio?: number;
+  anchorViewportYRatio?: number;
 };
 
 export type FollowViewportDebugPathPoint = {
@@ -15,10 +17,15 @@ export type FollowViewportDebugPathPoint = {
   recordedAt: number;
 };
 
-type FollowViewportCenterCameraState = {
-  centerSceneX: number;
-  centerSceneY: number;
-  zoomValue: number;
+type FollowViewportAnchor = {
+  viewportX: number;
+  viewportY: number;
+};
+
+type FollowViewportAnchoredCameraState = {
+  anchorSceneX: number;
+  anchorSceneY: number;
+  inverseZoom: number;
 };
 
 type FollowViewportSmootherOptions = {
@@ -85,18 +92,22 @@ export class FollowViewportSmoother {
       return null;
     }
 
-    const currentCenterCamera = this.toCenterCameraState({
-      camera: current,
+    const anchor = this.resolveAnchor({
       viewportWidth,
       viewportHeight,
-    });
-    const targetCenterCamera = this.toCenterCameraState({
-      camera: this.target,
-      viewportWidth,
-      viewportHeight,
+      target: this.target,
     });
 
-    if (this.isSettled(currentCenterCamera, targetCenterCamera)) {
+    const currentAnchoredCamera = this.toAnchoredCameraState({
+      camera: current,
+      anchor,
+    });
+    const targetAnchoredCamera = this.toAnchoredCameraState({
+      camera: this.target,
+      anchor,
+    });
+
+    if (this.isSettled(currentAnchoredCamera, targetAnchoredCamera)) {
       const nextCamera = this.toCameraState(this.target);
       this.reset();
       return nextCamera;
@@ -118,29 +129,27 @@ export class FollowViewportSmoother {
     }
 
     const alpha = 1 - Math.exp(-deltaMs / this.smoothingMs);
-    const nextCenterCamera: FollowViewportCenterCameraState = {
-      centerSceneX:
-        currentCenterCamera.centerSceneX +
-        (targetCenterCamera.centerSceneX - currentCenterCamera.centerSceneX) *
+    const nextAnchoredCamera: FollowViewportAnchoredCameraState = {
+      anchorSceneX:
+        currentAnchoredCamera.anchorSceneX +
+        (targetAnchoredCamera.anchorSceneX - currentAnchoredCamera.anchorSceneX) *
           alpha,
-      centerSceneY:
-        currentCenterCamera.centerSceneY +
-        (targetCenterCamera.centerSceneY - currentCenterCamera.centerSceneY) *
+      anchorSceneY:
+        currentAnchoredCamera.anchorSceneY +
+        (targetAnchoredCamera.anchorSceneY - currentAnchoredCamera.anchorSceneY) *
           alpha,
-      zoomValue: this.interpolateZoom(
-        currentCenterCamera.zoomValue,
-        targetCenterCamera.zoomValue,
-        alpha,
-      ),
+      inverseZoom:
+        currentAnchoredCamera.inverseZoom +
+        (targetAnchoredCamera.inverseZoom - currentAnchoredCamera.inverseZoom) *
+          alpha,
     };
 
-    const nextCamera = this.fromCenterCameraState({
-      camera: nextCenterCamera,
-      viewportWidth,
-      viewportHeight,
+    const nextCamera = this.fromAnchoredCameraState({
+      camera: nextAnchoredCamera,
+      anchor,
     });
 
-    if (this.isSettled(nextCenterCamera, targetCenterCamera)) {
+    if (this.isSettled(nextAnchoredCamera, targetAnchoredCamera)) {
       const settledCamera = this.toCameraState(this.target);
       this.reset();
       return settledCamera;
@@ -149,52 +158,68 @@ export class FollowViewportSmoother {
     return nextCamera;
   }
 
-  private interpolateZoom(from: number, to: number, alpha: number) {
-    if (from <= 0 || to <= 0) {
-      return to;
-    }
-
-    return Math.exp(Math.log(from) + (Math.log(to) - Math.log(from)) * alpha);
-  }
-
   private isSettled(
-    current: FollowViewportCenterCameraState,
-    target: FollowViewportCenterCameraState,
+    current: FollowViewportAnchoredCameraState,
+    target: FollowViewportAnchoredCameraState,
   ) {
     return (
-      Math.abs(current.centerSceneX - target.centerSceneX) <=
+      Math.abs(current.anchorSceneX - target.anchorSceneX) <=
         this.positionEpsilon &&
-      Math.abs(current.centerSceneY - target.centerSceneY) <=
+      Math.abs(current.anchorSceneY - target.anchorSceneY) <=
         this.positionEpsilon &&
-      Math.abs(current.zoomValue - target.zoomValue) <= this.zoomEpsilon
+      Math.abs(1 / current.inverseZoom - 1 / target.inverseZoom) <=
+        this.zoomEpsilon
     );
   }
 
-  private toCenterCameraState(args: {
-    camera: FollowViewportCameraState;
+  private resolveAnchor(args: {
     viewportWidth: number;
     viewportHeight: number;
-  }): FollowViewportCenterCameraState {
-    const { camera, viewportWidth, viewportHeight } = args;
+    target: FollowViewportTarget;
+  }): FollowViewportAnchor {
+    const { viewportWidth, viewportHeight, target } = args;
+
+    const xRatio = this.resolveAnchorRatio(target.anchorViewportXRatio);
+    const yRatio = this.resolveAnchorRatio(target.anchorViewportYRatio);
 
     return {
-      centerSceneX: viewportWidth / (2 * camera.zoomValue) - camera.scrollX,
-      centerSceneY: viewportHeight / (2 * camera.zoomValue) - camera.scrollY,
-      zoomValue: camera.zoomValue,
+      viewportX: (xRatio ?? 0.5) * viewportWidth,
+      viewportY: (yRatio ?? 0.5) * viewportHeight,
     };
   }
 
-  private fromCenterCameraState(args: {
-    camera: FollowViewportCenterCameraState;
-    viewportWidth: number;
-    viewportHeight: number;
-  }): FollowViewportCameraState {
-    const { camera, viewportWidth, viewportHeight } = args;
+  private resolveAnchorRatio(value: number | undefined) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      return null;
+    }
+
+    return Math.min(Math.max(value, 0), 1);
+  }
+
+  private toAnchoredCameraState(args: {
+    camera: FollowViewportCameraState;
+    anchor: FollowViewportAnchor;
+  }): FollowViewportAnchoredCameraState {
+    const { camera, anchor } = args;
 
     return {
-      scrollX: viewportWidth / (2 * camera.zoomValue) - camera.centerSceneX,
-      scrollY: viewportHeight / (2 * camera.zoomValue) - camera.centerSceneY,
-      zoomValue: camera.zoomValue,
+      anchorSceneX: anchor.viewportX / camera.zoomValue - camera.scrollX,
+      anchorSceneY: anchor.viewportY / camera.zoomValue - camera.scrollY,
+      inverseZoom: 1 / camera.zoomValue,
+    };
+  }
+
+  private fromAnchoredCameraState(args: {
+    camera: FollowViewportAnchoredCameraState;
+    anchor: FollowViewportAnchor;
+  }): FollowViewportCameraState {
+    const { camera, anchor } = args;
+    const zoomValue = 1 / camera.inverseZoom;
+
+    return {
+      scrollX: anchor.viewportX * camera.inverseZoom - camera.anchorSceneX,
+      scrollY: anchor.viewportY * camera.inverseZoom - camera.anchorSceneY,
+      zoomValue,
     };
   }
 

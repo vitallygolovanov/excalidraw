@@ -92,6 +92,7 @@ declare class App extends React.Component<AppProps, AppState> {
         x: number;
         y: number;
     };
+    private latestFollowViewportZoomAnchorRatios;
     animationFrameHandler: AnimationFrameHandler;
     laserTrails: LaserTrails;
     eraserTrail: EraserTrail;
@@ -552,6 +553,8 @@ declare class App extends React.Component<AppProps, AppState> {
     private getContextMenuItems;
     private handleWheel;
     private getTextWysiwygSnappedToCenterPosition;
+    private rememberFollowViewportZoomAnchor;
+    private getLatestFollowViewportZoomAnchorRatios;
     private savePointer;
     private resetShouldCacheIgnoreZoomDebounced;
     private updateDOMRect;

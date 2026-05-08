@@ -2,6 +2,8 @@ import React from "react";
 import { vi } from "vitest";
 
 import { Excalidraw } from "../index";
+import { getNormalizedZoom } from "../scene";
+import { getStateForZoom } from "../scene/zoom";
 
 import { API } from "./helpers/api";
 import { act, render, unmountComponent } from "./test-utils";
@@ -23,6 +25,19 @@ function createViewportFrames(
     scrollY: sequence * -5,
     zoomValue: 1 + sequence * 0.01,
   }));
+}
+
+function getAnchorScenePoint(args: {
+  anchorViewportXRatio: number;
+  anchorViewportYRatio: number;
+}) {
+  const anchorViewportX = h.state.width * args.anchorViewportXRatio;
+  const anchorViewportY = h.state.height * args.anchorViewportYRatio;
+
+  return {
+    x: anchorViewportX / h.state.zoom.value - h.state.scrollX,
+    y: anchorViewportY / h.state.zoom.value - h.state.scrollY,
+  };
 }
 
 function setFollowedCollaboratorViewport(args: {
@@ -241,6 +256,70 @@ describe("followed collaborator viewport playback", () => {
 
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(animationFrames.length).toBe(0);
+  });
+
+  it("preserves the transmitted off-center anchor point while smoothing zoom", () => {
+    const animationFrames = createManualAnimationFrames();
+    const socketId = "remote-anchor" as SocketId;
+    const anchorViewportXRatio = 0.85;
+    const anchorViewportYRatio = 0.15;
+    const anchorViewportX =
+      h.state.width * anchorViewportXRatio + h.state.offsetLeft;
+    const anchorViewportY =
+      h.state.height * anchorViewportYRatio + h.state.offsetTop;
+    const targetZoomValue = getNormalizedZoom(2);
+    const targetCamera = getStateForZoom(
+      {
+        viewportX: anchorViewportX,
+        viewportY: anchorViewportY,
+        nextZoom: targetZoomValue,
+      },
+      h.state,
+    );
+    const initialAnchorScenePoint = getAnchorScenePoint({
+      anchorViewportXRatio,
+      anchorViewportYRatio,
+    });
+
+    animationFrames.clear();
+    API.setAppState({
+      userToFollow: {
+        socketId,
+        username: "Remote user",
+      },
+    });
+
+    setFollowedCollaboratorViewport({
+      socketId,
+      frames: [
+        {
+          sequence: 5,
+          scrollX: targetCamera.scrollX,
+          scrollY: targetCamera.scrollY,
+          zoomValue: targetCamera.zoom.value,
+          anchorViewportXRatio,
+          anchorViewportYRatio,
+        },
+      ],
+    });
+
+    animationFrames.runNext(400);
+    animationFrames.runNext(416);
+
+    for (const nowAt of [432, 448, 464]) {
+      animationFrames.runNext(nowAt);
+
+      const currentAnchorScenePoint = getAnchorScenePoint({
+        anchorViewportXRatio,
+        anchorViewportYRatio,
+      });
+
+      expect(currentAnchorScenePoint.x).toBeCloseTo(initialAnchorScenePoint.x, 6);
+      expect(currentAnchorScenePoint.y).toBeCloseTo(initialAnchorScenePoint.y, 6);
+    }
+
+    expect(h.state.zoom.value).toBeGreaterThan(1);
+    expect(h.state.zoom.value).toBeLessThan(targetZoomValue);
   });
 
   it("rebases playback and restores the follow delay when a new batch has a sequence gap", () => {
