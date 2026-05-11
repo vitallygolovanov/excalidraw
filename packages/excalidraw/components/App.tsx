@@ -1724,6 +1724,7 @@ class App extends React.Component<AppProps, AppState> {
                           onHandToolToggle={this.onHandToolToggle}
                           langCode={getLanguage().code}
                           renderTopRightUI={renderTopRightUI}
+                          showCollaboratorsWidget={this.props.showCollaboratorsWidget}
                           renderCustomStats={renderCustomStats}
                           showExitZenModeBtn={
                             typeof this.props?.zenModeEnabled === "undefined" &&
@@ -1946,7 +1947,7 @@ class App extends React.Component<AppProps, AppState> {
                           onPointerDown={this.handleCanvasPointerDown}
                           onDoubleClick={this.handleCanvasDoubleClick}
                         />
-                        {this.state.userToFollow && (
+                        {this.props.showFollowModeChrome !== false && this.state.userToFollow && (
                           <FollowMode
                             width={this.state.width}
                             height={this.state.height}

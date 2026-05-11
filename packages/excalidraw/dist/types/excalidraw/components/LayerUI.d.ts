@@ -18,6 +18,7 @@ interface LayerUIProps {
     showExitZenModeBtn: boolean;
     langCode: Language["code"];
     renderTopRightUI?: ExcalidrawProps["renderTopRightUI"];
+    showCollaboratorsWidget?: ExcalidrawProps["showCollaboratorsWidget"];
     renderCustomStats?: ExcalidrawProps["renderCustomStats"];
     UIOptions: AppProps["UIOptions"];
     onExportImage: AppClassProperties["onExportImage"];
@@ -27,5 +28,5 @@ interface LayerUIProps {
     isCollaborating: boolean;
     generateLinkForSelection?: AppProps["generateLinkForSelection"];
 }
-declare const _default: React.MemoExoticComponent<({ actionManager, appState, files, setAppState, elements, canvas, onLockToggle, onHandToolToggle, onPenModeToggle, showExitZenModeBtn, renderTopRightUI, renderCustomStats, UIOptions, onExportImage, renderWelcomeScreen, children, app, isCollaborating, generateLinkForSelection, }: LayerUIProps) => import("react/jsx-runtime").JSX.Element>;
+declare const _default: React.MemoExoticComponent<({ actionManager, appState, files, setAppState, elements, canvas, onLockToggle, onHandToolToggle, onPenModeToggle, showExitZenModeBtn, renderTopRightUI, showCollaboratorsWidget, renderCustomStats, UIOptions, onExportImage, renderWelcomeScreen, children, app, isCollaborating, generateLinkForSelection, }: LayerUIProps) => import("react/jsx-runtime").JSX.Element>;
 export default _default;

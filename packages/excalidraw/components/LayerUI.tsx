@@ -87,6 +87,7 @@ interface LayerUIProps {
   showExitZenModeBtn: boolean;
   langCode: Language["code"];
   renderTopRightUI?: ExcalidrawProps["renderTopRightUI"];
+  showCollaboratorsWidget?: ExcalidrawProps["showCollaboratorsWidget"];
   renderCustomStats?: ExcalidrawProps["renderCustomStats"];
   UIOptions: AppProps["UIOptions"];
   onExportImage: AppClassProperties["onExportImage"];
@@ -145,6 +146,7 @@ const LayerUI = ({
   onPenModeToggle,
   showExitZenModeBtn,
   renderTopRightUI,
+  showCollaboratorsWidget,
   renderCustomStats,
   UIOptions,
   onExportImage,
@@ -351,7 +353,7 @@ const LayerUI = ({
               },
             )}
           >
-            {appState.collaborators.size > 0 && (
+            {showCollaboratorsWidget !== false && appState.collaborators.size > 0 && (
               <UserList
                 collaborators={appState.collaborators}
                 userToFollow={appState.userToFollow?.socketId || null}

@@ -49,6 +49,8 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     onPointerDown,
     onPointerUp,
     onScrollChange,
+    showCollaboratorsWidget,
+    showFollowModeChrome,
     onDuplicate,
     children,
     validateEmbeddable,
@@ -157,6 +159,8 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           handleFileUpload={handleFileUpload}
           resolveFileUrl={resolveFileUrl}
           onFileUrlError={onFileUrlError}
+              showCollaboratorsWidget={showCollaboratorsWidget}
+              showFollowModeChrome={showFollowModeChrome}
         >
           {children}
         </App>

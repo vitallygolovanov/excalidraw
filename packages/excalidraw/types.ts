@@ -673,6 +673,8 @@ export interface ExcalidrawProps {
   showDeprecatedFonts?: boolean;
   renderScrollbars?: boolean;
   renderRemoteCursorsOnCanvas?: boolean;
+  showCollaboratorsWidget?: boolean;
+  showFollowModeChrome?: boolean;
   customFileResolutionEnabled?: boolean;
   debugFollowViewportSmoothingVisible?: boolean;
 }
