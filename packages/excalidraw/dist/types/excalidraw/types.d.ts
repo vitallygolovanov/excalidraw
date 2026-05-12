@@ -26,6 +26,10 @@ export type CollaboratorViewportFrame = {
     scrollX: number;
     scrollY: number;
     zoomValue: number;
+    sceneLeft?: number;
+    sceneTop?: number;
+    sceneRight?: number;
+    sceneBottom?: number;
     anchorViewportXRatio?: number;
     anchorViewportYRatio?: number;
 };

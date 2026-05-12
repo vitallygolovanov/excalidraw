@@ -40,6 +40,15 @@ function getAnchorScenePoint(args: {
   };
 }
 
+function getVisibleSceneBoundsFromState() {
+  return {
+    left: -h.state.scrollX,
+    top: -h.state.scrollY,
+    right: -h.state.scrollX + h.state.width / h.state.zoom.value,
+    bottom: -h.state.scrollY + h.state.height / h.state.zoom.value,
+  };
+}
+
 function setFollowedCollaboratorViewport(args: {
   socketId: SocketId;
   frames: readonly CollaboratorViewportFrame[];
@@ -320,6 +329,61 @@ describe("followed collaborator viewport playback", () => {
 
     expect(h.state.zoom.value).toBeGreaterThan(1);
     expect(h.state.zoom.value).toBeLessThan(targetZoomValue);
+  });
+
+  it("derives a receiver-local target camera from transmitted scene bounds when the viewport differs", () => {
+    const animationFrames = createManualAnimationFrames();
+    const socketId = "remote-bounds" as SocketId;
+
+    animationFrames.clear();
+    API.setAppState({
+      width: 1000,
+      height: 400,
+      scrollX: 0,
+      scrollY: 0,
+      zoom: { value: 1 },
+      userToFollow: {
+        socketId,
+        username: "Remote user",
+      },
+    });
+
+    setFollowedCollaboratorViewport({
+      socketId,
+      frames: [
+        {
+          sequence: 5,
+          scrollX: 0,
+          scrollY: 0,
+          zoomValue: 1,
+          sceneLeft: 0,
+          sceneTop: 0,
+          sceneRight: 600,
+          sceneBottom: 400,
+        },
+      ],
+    });
+
+    animationFrames.runNext(400);
+    flushAnimationFrames({
+      animationFrames,
+      startAt: 416,
+      maxFrames: 50,
+    });
+
+    const visibleSceneBounds = getVisibleSceneBoundsFromState();
+    const visibleSceneCenterX =
+      (visibleSceneBounds.left + visibleSceneBounds.right) / 2;
+    const visibleSceneCenterY =
+      (visibleSceneBounds.top + visibleSceneBounds.bottom) / 2;
+
+    expect(h.state.zoom.value).toBeCloseTo(1, 6);
+    expect(visibleSceneBounds.left).toBeLessThanOrEqual(0);
+    expect(visibleSceneBounds.top).toBeLessThanOrEqual(0);
+    expect(visibleSceneBounds.right).toBeGreaterThanOrEqual(600);
+    expect(visibleSceneBounds.bottom).toBeGreaterThanOrEqual(400);
+    expect(visibleSceneCenterX).toBeCloseTo(300, 6);
+    expect(visibleSceneCenterY).toBeCloseTo(200, 6);
   });
 
   it("rebases playback and restores the follow delay when a new batch has a sequence gap", () => {

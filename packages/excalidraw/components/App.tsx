@@ -730,9 +730,32 @@ class App extends React.Component<AppProps, AppState> {
         frame.anchorViewportYRatio! <= 1
           ? frame.anchorViewportYRatio
           : undefined;
+      const sceneLeft = Number.isFinite(frame.sceneLeft)
+        ? frame.sceneLeft
+        : undefined;
+      const sceneTop = Number.isFinite(frame.sceneTop)
+        ? frame.sceneTop
+        : undefined;
+      const sceneRight = Number.isFinite(frame.sceneRight)
+        ? frame.sceneRight
+        : undefined;
+      const sceneBottom = Number.isFinite(frame.sceneBottom)
+        ? frame.sceneBottom
+        : undefined;
+      const hasVisibleSceneBounds =
+        sceneLeft != null &&
+        sceneTop != null &&
+        sceneRight != null &&
+        sceneBottom != null &&
+        sceneRight > sceneLeft &&
+        sceneBottom > sceneTop;
 
       sanitizedFrames.push({
         ...frame,
+        sceneLeft: hasVisibleSceneBounds ? sceneLeft : undefined,
+        sceneTop: hasVisibleSceneBounds ? sceneTop : undefined,
+        sceneRight: hasVisibleSceneBounds ? sceneRight : undefined,
+        sceneBottom: hasVisibleSceneBounds ? sceneBottom : undefined,
         anchorViewportXRatio,
         anchorViewportYRatio,
       });
@@ -3858,21 +3881,85 @@ class App extends React.Component<AppProps, AppState> {
     return collaborators.get(userToFollow.socketId)?.viewport ?? null;
   };
 
+  private resolveFollowedViewportTarget = (frame: CollaboratorViewportFrame) => {
+    const fallbackZoomValue = getNormalizedZoom(frame.zoomValue);
+    const fallbackTarget = {
+      sequence: frame.sequence,
+      scrollX: frame.scrollX,
+      scrollY: frame.scrollY,
+      zoomValue: fallbackZoomValue,
+      anchorViewportXRatio: frame.anchorViewportXRatio,
+      anchorViewportYRatio: frame.anchorViewportYRatio,
+    };
+
+    const { sceneLeft, sceneTop, sceneRight, sceneBottom } = frame;
+
+    if (
+      typeof sceneLeft !== "number" ||
+      !Number.isFinite(sceneLeft) ||
+      typeof sceneTop !== "number" ||
+      !Number.isFinite(sceneTop) ||
+      typeof sceneRight !== "number" ||
+      !Number.isFinite(sceneRight) ||
+      typeof sceneBottom !== "number" ||
+      !Number.isFinite(sceneBottom)
+    ) {
+      return fallbackTarget;
+    }
+
+    const viewportWidth = this.state.width;
+    const viewportHeight = this.state.height;
+
+    if (
+      !Number.isFinite(viewportWidth) ||
+      viewportWidth <= 0 ||
+      !Number.isFinite(viewportHeight) ||
+      viewportHeight <= 0
+    ) {
+      return fallbackTarget;
+    }
+
+    const sceneWidth = sceneRight - sceneLeft;
+    const sceneHeight = sceneBottom - sceneTop;
+
+    if (
+      !Number.isFinite(sceneWidth) ||
+      sceneWidth <= 0 ||
+      !Number.isFinite(sceneHeight) ||
+      sceneHeight <= 0
+    ) {
+      return fallbackTarget;
+    }
+
+    const fittedZoomValue = getNormalizedZoom(
+      Math.min(viewportWidth / sceneWidth, viewportHeight / sceneHeight),
+    );
+
+    if (!Number.isFinite(fittedZoomValue) || fittedZoomValue <= 0) {
+      return fallbackTarget;
+    }
+
+    const sceneCenterX = sceneLeft + sceneWidth / 2;
+    const sceneCenterY = sceneTop + sceneHeight / 2;
+
+    return {
+      sequence: frame.sequence,
+      scrollX: viewportWidth / (2 * fittedZoomValue) - sceneCenterX,
+      scrollY: viewportHeight / (2 * fittedZoomValue) - sceneCenterY,
+      zoomValue: fittedZoomValue,
+      anchorViewportXRatio: frame.anchorViewportXRatio,
+      anchorViewportYRatio: frame.anchorViewportYRatio,
+    };
+  };
+
   private applyFollowedViewportFrame = (frame: CollaboratorViewportFrame) => {
-    const zoomValue = getNormalizedZoom(frame.zoomValue);
+    const target = this.resolveFollowedViewportTarget(frame);
 
     this.lastAppliedFollowedViewportSequence = frame.sequence;
 
     setFollowViewportSmoothingTarget({
       owner: this,
-      target: {
-        sequence: frame.sequence,
-        scrollX: frame.scrollX,
-        scrollY: frame.scrollY,
-        zoomValue,
-        anchorViewportXRatio: frame.anchorViewportXRatio,
-        anchorViewportYRatio: frame.anchorViewportYRatio,
-      },
+      target,
       viewportWidth: this.state.width,
       viewportHeight: this.state.height,
     });

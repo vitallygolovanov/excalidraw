@@ -357,6 +357,7 @@ declare class App extends React.Component<AppProps, AppState> {
     private cancelInProgressAnimation;
     private resetFollowedViewportPlayback;
     private getFollowedCollaboratorViewport;
+    private resolveFollowedViewportTarget;
     private applyFollowedViewportFrame;
     private followedViewportPlaybackTick;
     private ensureFollowedViewportPlaybackLoop;
