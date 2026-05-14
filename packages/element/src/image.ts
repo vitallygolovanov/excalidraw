@@ -49,7 +49,9 @@ const normalizeFileDataUrlForCanvas = async (
 
   try {
     const response = await fetch(src, {
-      credentials: "include",
+      // Stable upload URLs authenticate on the same-origin app route and may
+      // redirect to a signed object host that does not allow credentialed CORS.
+      credentials: "same-origin",
     });
 
     if (!response.ok) {
@@ -72,7 +74,10 @@ const normalizeFileDataUrlForCanvas = async (
   }
 };
 
-export const loadHTMLImageElement = (dataURL: DataURL, onError?: EventResolver) => {
+export const loadHTMLImageElement = (
+  dataURL: DataURL,
+  onError?: EventResolver,
+) => {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
 
@@ -87,9 +92,11 @@ export const loadHTMLImageElement = (dataURL: DataURL, onError?: EventResolver) 
     image.onload = () => {
       resolve(image);
     };
-    image.onerror = onError ? (error)=>onError(error, resolve, reject) : ((error) => {
-      reject(error);
-    });
+    image.onerror = onError
+      ? (error) => onError(error, resolve, reject)
+      : (error) => {
+          reject(error);
+        };
     image.src = dataURL;
   });
 };
@@ -116,19 +123,18 @@ export const updateImageCache = async ({
   // if resolveFileUrl is provided, use it to build files object
   if (resolveFileUrl) {
     files = Object.fromEntries(
-      (await Promise.all(
-        fileIds.map(async (fileId) => {
-            const fileData = files[fileId] ?? await resolveFileUrl(fileId);
+      (
+        await Promise.all(
+          fileIds.map(async (fileId) => {
+            const fileData = files[fileId] ?? (await resolveFileUrl(fileId));
             if (fileData) {
               resolvedFiles.set(fileId, fileData);
-              return [
-                fileId,
-                fileData,
-              ];
+              return [fileId, fileData];
             }
             return null;
           }),
-      )).filter((entry): entry is [FileId, BinaryFileData] => entry !== null)
+        )
+      ).filter((entry): entry is [FileId, BinaryFileData] => entry !== null),
     );
   }
 
@@ -140,7 +146,9 @@ export const updateImageCache = async ({
         return promises.concat(
           (async () => {
             try {
-              const normalizedFileData = await normalizeFileDataUrlForCanvas(fileData);
+              const normalizedFileData = await normalizeFileDataUrlForCanvas(
+                fileData,
+              );
 
               if (normalizedFileData !== fileData) {
                 files[fileId] = normalizedFileData;
@@ -153,10 +161,10 @@ export const updateImageCache = async ({
 
               const imagePromise = loadHTMLImageElement(
                 (normalizedFileData.dataURL ?? fileData.dataURL) as DataURL,
-                onFileUrlError 
-                  ? (e, resolve, reject)=>
-                      onFileUrlError(fileId, e, resolve, reject) 
-                  : undefined
+                onFileUrlError
+                  ? (e, resolve, reject) =>
+                      onFileUrlError(fileId, e, resolve, reject)
+                  : undefined,
               );
 
               const data = {
