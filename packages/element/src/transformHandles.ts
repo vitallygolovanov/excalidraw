@@ -17,6 +17,7 @@ import type {
 import { getElementAbsoluteCoords } from "./bounds";
 import {
   isElbowArrow,
+  isEditorFrameElement,
   isFrameLikeElement,
   isImageElement,
   isLinearElement,
@@ -285,6 +286,10 @@ export const getTransformHandles = (
     // Elbow arrows cannot be rotated
     isElbowArrow(element)
   ) {
+    return {};
+  }
+
+  if (isEditorFrameElement(element)) {
     return {};
   }
 

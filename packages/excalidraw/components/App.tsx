@@ -134,7 +134,9 @@ import {
   isBindingElement,
   isBindingElementType,
   isBoundToContainer,
+  isEditorFrameElement,
   isFrameLikeElement,
+  isFrameTitleElement,
   isImageElement,
   isEmbeddableElement,
   isInitializedImageElement,
@@ -250,6 +252,7 @@ import type {
   NonDeletedExcalidrawElement,
   ExcalidrawTextContainer,
   ExcalidrawFrameLikeElement,
+  ExcalidrawFrameTitleElement,
   ExcalidrawMagicFrameElement,
   ExcalidrawIframeLikeElement,
   IframeData,
@@ -1499,19 +1502,25 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     const isDarkTheme = this.state.theme === THEME.DARK;
-    const nonDeletedFramesLikes = this.scene.getNonDeletedFramesLikes();
+    const isOrderedFrameTitleElement = (
+      element: Ordered<NonDeletedExcalidrawElement>,
+    ): element is Ordered<ExcalidrawFrameTitleElement> =>
+      isFrameTitleElement(element);
+    const nonDeletedFrameTitles = this.scene
+      .getNonDeletedElements()
+      .filter(isOrderedFrameTitleElement);
 
     const focusedSearchMatch =
-      nonDeletedFramesLikes.length > 0
+      nonDeletedFrameTitles.length > 0
         ? this.state.searchMatches?.focusedId &&
-          isFrameLikeElement(
+          isFrameTitleElement(
             this.scene.getElement(this.state.searchMatches.focusedId),
           )
           ? this.state.searchMatches.matches.find((sm) => sm.focus)
           : null
         : null;
 
-    return nonDeletedFramesLikes.map((f) => {
+    return nonDeletedFrameTitles.map((f) => {
       if (
         !isElementInViewport(
           f,
@@ -1528,7 +1537,11 @@ class App extends React.Component<AppProps, AppState> {
         )
       ) {
         if (this.state.editingFrame === f.id) {
-          this.resetEditingFrame(f);
+          if (isFrameLikeElement(f)) {
+            this.resetEditingFrame(f);
+          } else {
+            this.resetEditingFrame(null);
+          }
         }
         // if frame not visible, don't render its name
         return null;
@@ -1543,9 +1556,13 @@ class App extends React.Component<AppProps, AppState> {
 
       let frameNameJSX;
 
-      const frameName = getFrameLikeTitle(f);
+      const frameName =
+        f.type === "editor_frame"
+          ? f.name?.trim() || "Frame"
+          : getFrameLikeTitle(f);
+      const canEditFrameName = isFrameLikeElement(f);
 
-      if (f.id === this.state.editingFrame) {
+      if (canEditFrameName && f.id === this.state.editingFrame) {
         const frameNameInEdit = frameName;
 
         frameNameJSX = (
@@ -1603,6 +1620,8 @@ class App extends React.Component<AppProps, AppState> {
         <div
           id={this.getFrameNameDOMId(f)}
           key={f.id}
+          className={isEditorFrameElement(f) ? "excalidraw__editor-frame-title" : undefined}
+          data-editor-frame-title={isEditorFrameElement(f) ? "true" : undefined}
           style={{
             position: "absolute",
             // Positioning from bottom so that we don't to either
@@ -1623,7 +1642,9 @@ class App extends React.Component<AppProps, AppState> {
               ? FRAME_STYLE.nameColorDarkTheme
               : FRAME_STYLE.nameColorLightTheme,
             lineHeight: FRAME_STYLE.nameLineHeight,
-            width: "max-content",
+            width: isEditorFrameElement(f)
+              ? `${f.width * this.state.zoom.value}px`
+              : "max-content",
             maxWidth:
               focusedSearchMatch?.id === f.id && focusedSearchMatch?.focus
                 ? "none"
@@ -1639,11 +1660,15 @@ class App extends React.Component<AppProps, AppState> {
           onPointerDown={(event) => this.handleCanvasPointerDown(event)}
           onWheel={(event) => this.handleWheel(event)}
           onContextMenu={this.handleCanvasContextMenu}
-          onDoubleClick={() => {
-            this.setState({
-              editingFrame: f.id,
-            });
-          }}
+          onDoubleClick={
+            canEditFrameName
+              ? () => {
+                  this.setState({
+                    editingFrame: f.id,
+                  });
+                }
+              : undefined
+          }
         >
           {frameNameJSX}
         </div>
@@ -5619,7 +5644,7 @@ class App extends React.Component<AppProps, AppState> {
         // this also avoids the need to update past tests
         threshold: this.getElementHitThreshold(elementWithHighestZIndex) / 2,
         elementsMap: this.scene.getNonDeletedElementsMap(),
-        frameNameBound: isFrameLikeElement(elementWithHighestZIndex)
+        frameNameBound: isFrameTitleElement(elementWithHighestZIndex)
           ? this.frameNameBoundsCache.get(elementWithHighestZIndex)
           : null,
       })
@@ -5735,7 +5760,7 @@ class App extends React.Component<AppProps, AppState> {
       element,
       threshold: this.getElementHitThreshold(element),
       elementsMap: this.scene.getNonDeletedElementsMap(),
-      frameNameBound: isFrameLikeElement(element)
+      frameNameBound: isFrameTitleElement(element)
         ? this.frameNameBoundsCache.get(element)
         : null,
     });
@@ -10245,7 +10270,7 @@ class App extends React.Component<AppProps, AppState> {
               element: hitElement,
               elementsMap,
               threshold: this.getElementHitThreshold(hitElement),
-              frameNameBound: isFrameLikeElement(hitElement)
+              frameNameBound: isFrameTitleElement(hitElement)
                 ? this.frameNameBoundsCache.get(hitElement)
                 : null,
             },

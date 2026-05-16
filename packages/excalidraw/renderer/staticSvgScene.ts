@@ -570,6 +570,7 @@ const renderElementToSvg = (
       break;
     }
     // frames are not rendered and only acts as a container
+    case "editor_frame":
     case "frame":
     case "magicframe": {
       if (

@@ -852,6 +852,7 @@ const generateElementShape = (
       }
       return shape;
     }
+    case "editor_frame":
     case "frame":
     case "magicframe":
     case "text":
@@ -947,6 +948,7 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
   switch (element.type) {
     case "rectangle":
     case "diamond":
+    case "editor_frame":
     case "frame":
     case "magicframe":
     case "embeddable":

@@ -27,6 +27,7 @@ import type {
   Theme,
   StrokeRoundness,
   ExcalidrawEmbeddableElement,
+  ExcalidrawFrameTitleElement,
   ExcalidrawMagicFrameElement,
   ExcalidrawFrameLikeElement,
   ExcalidrawElementType,
@@ -955,13 +956,13 @@ export type FrameNameBounds = {
 
 export type FrameNameBoundsCache = {
   get: (
-    frameElement: ExcalidrawFrameLikeElement | ExcalidrawMagicFrameElement,
+    frameElement: ExcalidrawFrameTitleElement,
   ) => FrameNameBounds | null;
   _cache: Map<
     string,
     FrameNameBounds & {
       zoom: AppState["zoom"]["value"];
-      versionNonce: ExcalidrawFrameLikeElement["versionNonce"];
+      versionNonce: ExcalidrawFrameTitleElement["versionNonce"];
     }
   >;
 };

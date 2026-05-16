@@ -1,7 +1,7 @@
 import type { AppClassProperties, AppState, StaticCanvasAppState } from "@excalidraw/excalidraw/types";
 import type { ReadonlySetLike } from "@excalidraw/common/utility-types";
 import type { ExcalidrawElementsIncludingDeleted } from "./Scene";
-import type { ElementsMap, ElementsMapOrArray, ExcalidrawElement, ExcalidrawFrameLikeElement, NonDeleted, NonDeletedExcalidrawElement } from "./types";
+import type { ElementsMap, ElementsMapOrArray, ExcalidrawElement, ExcalidrawFrameTitleElement, ExcalidrawFrameLikeElement, NonDeleted, NonDeletedExcalidrawElement } from "./types";
 export declare const bindElementsToFramesAfterDuplication: (nextElements: readonly ExcalidrawElement[], origElements: readonly ExcalidrawElement[], origIdToDuplicateId: Map<ExcalidrawElement["id"], ExcalidrawElement["id"]>) => void;
 export declare function isElementIntersectingFrame(element: ExcalidrawElement, frame: ExcalidrawFrameLikeElement, elementsMap: ElementsMap): boolean;
 export declare const getElementsCompletelyInFrame: (elements: readonly ExcalidrawElement[], frame: ExcalidrawFrameLikeElement, elementsMap: ElementsMap) => ExcalidrawElement[];
@@ -31,8 +31,8 @@ export declare const getFrameLikeElements: (allElements: ExcalidrawElementsInclu
  */
 export declare const getRootElements: (allElements: ExcalidrawElementsIncludingDeleted) => ExcalidrawElement[];
 export declare const getElementsInResizingFrame: (allElements: ExcalidrawElementsIncludingDeleted, frame: ExcalidrawFrameLikeElement, appState: AppState, elementsMap: ElementsMap) => ExcalidrawElement[];
-export declare const getElementsInNewFrame: (elements: ExcalidrawElementsIncludingDeleted, frame: ExcalidrawFrameLikeElement, elementsMap: ElementsMap) => (import("./types").ExcalidrawSelectionElement | import("./types").ExcalidrawRectangleElement | import("./types").ExcalidrawDiamondElement | import("./types").ExcalidrawEllipseElement | import("./types").ExcalidrawTextElement | import("./types").ExcalidrawLinearElement | import("./types").ExcalidrawFreeDrawElement | import("./types").ExcalidrawImageElement | import("./types").ExcalidrawFrameElement | import("./types").ExcalidrawMagicFrameElement | import("./types").ExcalidrawIframeElement | import("./types").ExcalidrawEmbeddableElement)[];
-export declare const omitPartialGroups: (elements: ExcalidrawElement[], frame: ExcalidrawFrameLikeElement, allElementsMap: ElementsMap) => (import("./types").ExcalidrawSelectionElement | import("./types").ExcalidrawRectangleElement | import("./types").ExcalidrawDiamondElement | import("./types").ExcalidrawEllipseElement | import("./types").ExcalidrawTextElement | import("./types").ExcalidrawLinearElement | import("./types").ExcalidrawFreeDrawElement | import("./types").ExcalidrawImageElement | import("./types").ExcalidrawFrameElement | import("./types").ExcalidrawMagicFrameElement | import("./types").ExcalidrawIframeElement | import("./types").ExcalidrawEmbeddableElement)[];
+export declare const getElementsInNewFrame: (elements: ExcalidrawElementsIncludingDeleted, frame: ExcalidrawFrameLikeElement, elementsMap: ElementsMap) => (import("./types").ExcalidrawSelectionElement | import("./types").ExcalidrawRectangleElement | import("./types").ExcalidrawDiamondElement | import("./types").ExcalidrawEllipseElement | import("./types").ExcalidrawTextElement | import("./types").ExcalidrawLinearElement | import("./types").ExcalidrawFreeDrawElement | import("./types").ExcalidrawImageElement | import("./types").ExcalidrawFrameElement | import("./types").ExcalidrawEditorFrameElement | import("./types").ExcalidrawMagicFrameElement | import("./types").ExcalidrawIframeElement | import("./types").ExcalidrawEmbeddableElement)[];
+export declare const omitPartialGroups: (elements: ExcalidrawElement[], frame: ExcalidrawFrameLikeElement, allElementsMap: ElementsMap) => (import("./types").ExcalidrawSelectionElement | import("./types").ExcalidrawRectangleElement | import("./types").ExcalidrawDiamondElement | import("./types").ExcalidrawEllipseElement | import("./types").ExcalidrawTextElement | import("./types").ExcalidrawLinearElement | import("./types").ExcalidrawFreeDrawElement | import("./types").ExcalidrawImageElement | import("./types").ExcalidrawFrameElement | import("./types").ExcalidrawEditorFrameElement | import("./types").ExcalidrawMagicFrameElement | import("./types").ExcalidrawIframeElement | import("./types").ExcalidrawEmbeddableElement)[];
 export declare const getContainingFrame: (element: ExcalidrawElement, elementsMap: ElementsMap) => ExcalidrawFrameLikeElement | null;
 /** */
 export declare const filterElementsEligibleAsFrameChildren: (elements: readonly ExcalidrawElement[], frame: ExcalidrawFrameLikeElement) => ExcalidrawElement[];
@@ -64,7 +64,7 @@ export declare const isElementInFrame: (element: ExcalidrawElement, allElementsM
     checkedGroups?: Map<string, boolean>;
 }) => boolean;
 export declare const shouldApplyFrameClip: (element: ExcalidrawElement, frame: ExcalidrawFrameLikeElement, appState: StaticCanvasAppState, elementsMap: ElementsMap, checkedGroups?: Map<string, boolean>) => boolean;
-export declare const getDefaultFrameName: (element: ExcalidrawFrameLikeElement) => "Frame" | "AI Frame";
-export declare const getFrameLikeTitle: (element: ExcalidrawFrameLikeElement) => string;
+export declare const getDefaultFrameName: (element: ExcalidrawFrameTitleElement) => "Frame" | "AI Frame";
+export declare const getFrameLikeTitle: (element: ExcalidrawFrameTitleElement) => string;
 export declare const getElementsOverlappingFrame: (elements: readonly ExcalidrawElement[], frame: ExcalidrawFrameLikeElement) => NonDeletedExcalidrawElement[];
 export declare const frameAndChildrenSelectedTogether: (selectedElements: readonly ExcalidrawElement[]) => boolean;

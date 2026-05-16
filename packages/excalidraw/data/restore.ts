@@ -398,6 +398,7 @@ const restoreElement = (
     case "diamond":
     case "iframe":
     case "embeddable":
+    case "editor_frame":
       return restoreElementWithProperties(element, {});
     case "magicframe":
     case "frame":

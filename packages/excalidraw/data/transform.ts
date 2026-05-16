@@ -20,6 +20,7 @@ import { bindLinearElement } from "@excalidraw/element";
 import {
   newArrowElement,
   newElement,
+  newEditorFrameElement,
   newFrameElement,
   newImageElement,
   newLinearElement,
@@ -44,6 +45,7 @@ import type { ElementConstructorOpts } from "@excalidraw/element";
 import type {
   ExcalidrawArrowElement,
   ExcalidrawBindableElement,
+  ExcalidrawEditorFrameElement,
   ExcalidrawElement,
   ExcalidrawFrameElement,
   ExcalidrawFreeDrawElement,
@@ -198,6 +200,10 @@ export type ExcalidrawElementSkeleton =
       y: number;
       fileId: FileId;
     } & Partial<ExcalidrawImageElement>)
+  | ({
+      type: "editor_frame";
+      name?: string;
+    } & Partial<ExcalidrawEditorFrameElement>)
   | ({
       type: "frame";
       children: readonly ExcalidrawElement["id"][];
@@ -613,6 +619,14 @@ export const convertToExcalidrawElements = (
         });
         break;
       }
+      case "editor_frame": {
+        excalidrawElement = newEditorFrameElement({
+          x: 0,
+          y: 0,
+          ...element,
+        });
+        break;
+      }
       case "magicframe": {
         excalidrawElement = newMagicFrameElement({
           x: 0,
@@ -738,7 +752,10 @@ export const convertToExcalidrawElements = (
   // need to calculate coordinates and dimensions of frame which is possible after all
   // frame children are processed.
   for (const [id, element] of elementsWithIds) {
-    if (element.type !== "frame" && element.type !== "magicframe") {
+    if (
+      element.type !== "frame" &&
+      element.type !== "magicframe"
+    ) {
       continue;
     }
     const frame = elementStore.getElement(id);

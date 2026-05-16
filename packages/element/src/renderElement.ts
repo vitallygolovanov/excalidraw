@@ -717,6 +717,7 @@ export const renderElement = (
   );
 
   switch (element.type) {
+    case "editor_frame":
     case "magicframe":
     case "frame": {
       if (appState.frameRendering.enabled && appState.frameRendering.outline) {

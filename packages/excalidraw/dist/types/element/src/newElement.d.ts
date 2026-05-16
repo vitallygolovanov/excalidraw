@@ -1,5 +1,5 @@
 import type { MarkOptional } from "@excalidraw/common/utility-types";
-import type { ExcalidrawImageElement, ExcalidrawTextElement, ExcalidrawLinearElement, ExcalidrawGenericElement, NonDeleted, TextAlign, VerticalAlign, Arrowhead, ExcalidrawFreeDrawElement, FontFamilyValues, ExcalidrawTextContainer, ExcalidrawFrameElement, ExcalidrawEmbeddableElement, ExcalidrawMagicFrameElement, ExcalidrawIframeElement, ElementsMap, ExcalidrawArrowElement, ExcalidrawElbowArrowElement, ExcalidrawLineElement } from "./types";
+import type { ExcalidrawImageElement, ExcalidrawTextElement, ExcalidrawLinearElement, ExcalidrawGenericElement, NonDeleted, TextAlign, VerticalAlign, Arrowhead, ExcalidrawFreeDrawElement, FontFamilyValues, ExcalidrawTextContainer, ExcalidrawFrameElement, ExcalidrawEditorFrameElement, ExcalidrawEmbeddableElement, ExcalidrawMagicFrameElement, ExcalidrawIframeElement, ElementsMap, ExcalidrawArrowElement, ExcalidrawElbowArrowElement, ExcalidrawLineElement } from "./types";
 export type ElementConstructorOpts = MarkOptional<Omit<ExcalidrawGenericElement, "id" | "type" | "isDeleted" | "updated">, "width" | "height" | "angle" | "groupIds" | "frameId" | "index" | "boundElements" | "seed" | "version" | "versionNonce" | "link" | "strokeStyle" | "fillStyle" | "strokeColor" | "backgroundColor" | "roughness" | "strokeWidth" | "roundness" | "locked" | "opacity" | "customData">;
 export declare const newElement: (opts: {
     type: ExcalidrawGenericElement["type"];
@@ -13,6 +13,9 @@ export declare const newIframeElement: (opts: {
 export declare const newFrameElement: (opts: {
     name?: string;
 } & ElementConstructorOpts) => NonDeleted<ExcalidrawFrameElement>;
+export declare const newEditorFrameElement: (opts: {
+    name?: string;
+} & ElementConstructorOpts) => NonDeleted<ExcalidrawEditorFrameElement>;
 export declare const newMagicFrameElement: (opts: {
     name?: string;
 } & ElementConstructorOpts) => NonDeleted<ExcalidrawMagicFrameElement>;

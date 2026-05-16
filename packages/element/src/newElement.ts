@@ -41,6 +41,7 @@ import type {
   FontFamilyValues,
   ExcalidrawTextContainer,
   ExcalidrawFrameElement,
+  ExcalidrawEditorFrameElement,
   ExcalidrawEmbeddableElement,
   ExcalidrawMagicFrameElement,
   ExcalidrawIframeElement,
@@ -189,6 +190,23 @@ export const newFrameElement = (
     {
       ..._newElementBase<ExcalidrawFrameElement>("frame", opts),
       type: "frame",
+      name: opts?.name || null,
+    },
+    {},
+  );
+
+  return frameElement;
+};
+
+export const newEditorFrameElement = (
+  opts: {
+    name?: string;
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawEditorFrameElement> => {
+  const frameElement = newElementWith(
+    {
+      ..._newElementBase<ExcalidrawEditorFrameElement>("editor_frame", opts),
+      type: "editor_frame",
       name: opts?.name || null,
     },
     {},

@@ -203,6 +203,7 @@ const renderBindingHighlightForBindableElement = (
     case "image":
     case "iframe":
     case "embeddable":
+    case "editor_frame":
     case "frame":
     case "magicframe":
       drawHighlightForRectWithRotation(context, element, elementsMap, padding);

@@ -1,5 +1,5 @@
 import { type GlobalPoint, type LocalPoint } from "@excalidraw/math";
-import type { ElementsMap, ExcalidrawBindableElement, ExcalidrawDiamondElement, ExcalidrawElement, ExcalidrawEllipseElement, ExcalidrawEmbeddableElement, ExcalidrawFrameLikeElement, ExcalidrawFreeDrawElement, ExcalidrawIframeElement, ExcalidrawImageElement, ExcalidrawLinearElement, ExcalidrawRectangleElement, ExcalidrawSelectionElement, ExcalidrawTextElement } from "@excalidraw/element/types";
+import type { ElementsMap, ExcalidrawBindableElement, ExcalidrawDiamondElement, ExcalidrawEditorFrameElement, ExcalidrawElement, ExcalidrawEllipseElement, ExcalidrawEmbeddableElement, ExcalidrawFrameLikeElement, ExcalidrawFreeDrawElement, ExcalidrawIframeElement, ExcalidrawImageElement, ExcalidrawLinearElement, ExcalidrawRectangleElement, ExcalidrawSelectionElement, ExcalidrawTextElement } from "@excalidraw/element/types";
 import type { Curve, LineSegment, Polygon, Radians } from "@excalidraw/math";
 import type { Drawable, Op } from "roughjs/bin/core";
 export type Polyline<Point extends GlobalPoint | LocalPoint> = LineSegment<Point>[];
@@ -29,7 +29,7 @@ export type GeometricShape<Point extends GlobalPoint | LocalPoint> = {
     type: "polycurve";
     data: Polycurve<Point>;
 };
-type RectangularElement = ExcalidrawRectangleElement | ExcalidrawDiamondElement | ExcalidrawFrameLikeElement | ExcalidrawEmbeddableElement | ExcalidrawImageElement | ExcalidrawIframeElement | ExcalidrawTextElement | ExcalidrawSelectionElement;
+type RectangularElement = ExcalidrawRectangleElement | ExcalidrawDiamondElement | ExcalidrawEditorFrameElement | ExcalidrawFrameLikeElement | ExcalidrawEmbeddableElement | ExcalidrawImageElement | ExcalidrawIframeElement | ExcalidrawTextElement | ExcalidrawSelectionElement;
 export declare const getPolygonShape: <Point extends GlobalPoint | LocalPoint>(element: RectangularElement) => GeometricShape<Point>;
 export declare const getSelectionBoxShape: <Point extends GlobalPoint | LocalPoint>(element: ExcalidrawElement, elementsMap: ElementsMap, padding?: number) => GeometricShape<Point>;
 export declare const getEllipseShape: <Point extends GlobalPoint | LocalPoint>(element: ExcalidrawEllipseElement) => GeometricShape<Point>;

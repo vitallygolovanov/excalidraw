@@ -24,7 +24,7 @@ import {
 
 import { newElementWith } from "@excalidraw/element";
 
-import { isFrameLikeElement } from "@excalidraw/element";
+import { isFrameTitleElement } from "@excalidraw/element";
 
 import {
   getElementsOverlappingFrame,
@@ -105,7 +105,7 @@ const addFrameLabelsAsTextElements = (
 ) => {
   const nextElements: NonDeletedExcalidrawElement[] = [];
   for (const element of elements) {
-    if (isFrameLikeElement(element)) {
+    if (isFrameTitleElement(element)) {
       let textElement: Mutable<ExcalidrawTextElement> = newTextElement({
         x: element.x,
         y: element.y - FRAME_STYLE.nameOffsetY,
@@ -487,7 +487,7 @@ export const exportToSvg = async (
       embedsValidationStatus: renderEmbeddables
         ? new Map(
             elementsForRender
-              .filter((element) => isFrameLikeElement(element))
+              .filter(isFrameTitleElement)
               .map((element) => [element.id, true]),
           )
         : new Map(),

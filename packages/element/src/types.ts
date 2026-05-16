@@ -165,6 +165,11 @@ export type ExcalidrawFrameElement = _ExcalidrawElementBase & {
   name: string | null;
 };
 
+export type ExcalidrawEditorFrameElement = _ExcalidrawElementBase & {
+  type: "editor_frame";
+  name: string | null;
+};
+
 export type ExcalidrawMagicFrameElement = _ExcalidrawElementBase & {
   type: "magicframe";
   name: string | null;
@@ -173,6 +178,10 @@ export type ExcalidrawMagicFrameElement = _ExcalidrawElementBase & {
 export type ExcalidrawFrameLikeElement =
   | ExcalidrawFrameElement
   | ExcalidrawMagicFrameElement;
+
+export type ExcalidrawFrameTitleElement =
+  | ExcalidrawFrameLikeElement
+  | ExcalidrawEditorFrameElement;
 
 /**
  * These are elements that don't have any additional properties.
@@ -194,6 +203,7 @@ export type ExcalidrawRectanguloidElement =
   | ExcalidrawTextElement
   | ExcalidrawFreeDrawElement
   | ExcalidrawIframeLikeElement
+  | ExcalidrawEditorFrameElement
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawSelectionElement;
@@ -211,6 +221,7 @@ export type ExcalidrawElement =
   | ExcalidrawFreeDrawElement
   | ExcalidrawImageElement
   | ExcalidrawFrameElement
+  | ExcalidrawEditorFrameElement
   | ExcalidrawMagicFrameElement
   | ExcalidrawIframeElement
   | ExcalidrawEmbeddableElement;
@@ -262,6 +273,7 @@ export type ExcalidrawBindableElement =
   | ExcalidrawEllipseElement
   | ExcalidrawTextElement
   | ExcalidrawImageElement
+  | ExcalidrawEditorFrameElement
   | ExcalidrawIframeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawFrameElement

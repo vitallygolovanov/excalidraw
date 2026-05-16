@@ -40,6 +40,7 @@ import type {
   ElementsMap,
   ExcalidrawBindableElement,
   ExcalidrawDiamondElement,
+  ExcalidrawEditorFrameElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
   ExcalidrawEmbeddableElement,
@@ -105,6 +106,7 @@ export type GeometricShape<Point extends GlobalPoint | LocalPoint> =
 type RectangularElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
+  | ExcalidrawEditorFrameElement
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawImageElement

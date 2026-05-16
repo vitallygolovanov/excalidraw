@@ -1,5 +1,5 @@
 import type { ElementConstructorOpts } from "@excalidraw/element";
-import type { ExcalidrawBindableElement, ExcalidrawElement, ExcalidrawFrameElement, ExcalidrawFreeDrawElement, ExcalidrawGenericElement, ExcalidrawIframeLikeElement, ExcalidrawImageElement, ExcalidrawLinearElement, ExcalidrawMagicFrameElement, ExcalidrawSelectionElement, ExcalidrawTextElement, FileId, FontFamilyValues, TextAlign, VerticalAlign } from "@excalidraw/element/types";
+import type { ExcalidrawBindableElement, ExcalidrawEditorFrameElement, ExcalidrawElement, ExcalidrawFrameElement, ExcalidrawFreeDrawElement, ExcalidrawGenericElement, ExcalidrawIframeLikeElement, ExcalidrawImageElement, ExcalidrawLinearElement, ExcalidrawMagicFrameElement, ExcalidrawSelectionElement, ExcalidrawTextElement, FileId, FontFamilyValues, TextAlign, VerticalAlign } from "@excalidraw/element/types";
 import type { MarkOptional } from "@excalidraw/common/utility-types";
 export type ValidLinearElement = {
     type: "arrow" | "line";
@@ -68,6 +68,9 @@ export type ExcalidrawElementSkeleton = Extract<Exclude<ExcalidrawElement, Excal
     y: number;
     fileId: FileId;
 } & Partial<ExcalidrawImageElement>) | ({
+    type: "editor_frame";
+    name?: string;
+} & Partial<ExcalidrawEditorFrameElement>) | ({
     type: "frame";
     children: readonly ExcalidrawElement["id"][];
     name?: string;

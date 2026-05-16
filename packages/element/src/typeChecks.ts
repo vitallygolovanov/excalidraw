@@ -19,6 +19,8 @@ import type {
   ExcalidrawTextElementWithContainer,
   ExcalidrawTextContainer,
   ExcalidrawFrameElement,
+  ExcalidrawFrameTitleElement,
+  ExcalidrawEditorFrameElement,
   RoundnessType,
   ExcalidrawFrameLikeElement,
   ExcalidrawElementType,
@@ -84,6 +86,12 @@ export const isMagicFrameElement = (
   return element != null && element.type === "magicframe";
 };
 
+export const isEditorFrameElement = (
+  element: ExcalidrawElement | null,
+): element is ExcalidrawEditorFrameElement => {
+  return element != null && element.type === "editor_frame";
+};
+
 export const isFrameLikeElement = (
   element: ExcalidrawElement | null,
 ): element is ExcalidrawFrameLikeElement => {
@@ -91,6 +99,12 @@ export const isFrameLikeElement = (
     element != null &&
     (element.type === "frame" || element.type === "magicframe")
   );
+};
+
+export const isFrameTitleElement = (
+  element: ExcalidrawElement | null,
+): element is ExcalidrawFrameTitleElement => {
+  return !!element && (isFrameLikeElement(element) || isEditorFrameElement(element));
 };
 
 export const isFreeDrawElement = (
@@ -190,6 +204,7 @@ export const isBindableElement = (
       element.type === "image" ||
       element.type === "iframe" ||
       element.type === "embeddable" ||
+      element.type === "editor_frame" ||
       element.type === "frame" ||
       element.type === "magicframe" ||
       (element.type === "text" && !element.containerId))
@@ -206,6 +221,7 @@ export const isRectanguloidElement = (
       element.type === "image" ||
       element.type === "iframe" ||
       element.type === "embeddable" ||
+      element.type === "editor_frame" ||
       element.type === "frame" ||
       element.type === "magicframe" ||
       (element.type === "text" && !element.containerId))
@@ -224,6 +240,7 @@ export const isRectangularElement = (
       element.type === "text" ||
       element.type === "iframe" ||
       element.type === "embeddable" ||
+      element.type === "editor_frame" ||
       element.type === "frame" ||
       element.type === "magicframe" ||
       element.type === "freedraw")
@@ -258,6 +275,7 @@ export const isExcalidrawElement = (
     case "iframe":
     case "embeddable":
     case "ellipse":
+    case "editor_frame":
     case "arrow":
     case "freedraw":
     case "line":

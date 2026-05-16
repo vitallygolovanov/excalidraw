@@ -593,6 +593,44 @@ export declare const actionTogglePolygon: {
             locked: boolean;
             customData?: Record<string, any> | undefined;
         }> & {
+            type: "editor_frame";
+            name: string | null;
+        } & {
+            index: import("@excalidraw/element/types").FractionalIndex;
+        }) | (Readonly<{
+            id: string;
+            x: number;
+            y: number;
+            strokeColor: string;
+            backgroundColor: string;
+            fillStyle: import("@excalidraw/element/types").FillStyle;
+            strokeWidth: number;
+            strokeStyle: import("@excalidraw/element/types").StrokeStyle;
+            roundness: {
+                type: import("@excalidraw/element/types").RoundnessType;
+                value?: number | undefined;
+            } | null;
+            roughness: number;
+            opacity: number;
+            width: number;
+            height: number;
+            angle: import("@excalidraw/math").Radians;
+            seed: number;
+            version: number;
+            versionNonce: number;
+            index: import("@excalidraw/element/types").FractionalIndex | null;
+            isDeleted: boolean;
+            groupIds: readonly string[];
+            frameId: string | null;
+            boundElements: readonly Readonly<{
+                id: string;
+                type: "text" | "arrow";
+            }>[] | null;
+            updated: number;
+            link: string | null;
+            locked: boolean;
+            customData?: Record<string, any> | undefined;
+        }> & {
             type: "magicframe";
             name: string | null;
         } & {

@@ -222,6 +222,7 @@ export const intersectElementWithLineSegment = (
     case "text":
     case "iframe":
     case "embeddable":
+    case "editor_frame":
     case "frame":
     case "selection":
     case "magicframe":

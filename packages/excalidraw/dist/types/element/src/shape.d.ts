@@ -19,7 +19,7 @@ export declare class ShapeCache {
      * Generates & caches shape for element if not already cached, otherwise
      * returns cached shape.
      */
-    static generateElementShape: <T extends import("./types").ExcalidrawRectangleElement | import("./types").ExcalidrawDiamondElement | import("./types").ExcalidrawEllipseElement | import("./types").ExcalidrawTextElement | ExcalidrawLinearElement | import("./types").ExcalidrawArrowElement | ExcalidrawFreeDrawElement | import("./types").ExcalidrawImageElement | import("./types").ExcalidrawFrameElement | import("./types").ExcalidrawMagicFrameElement | import("./types").ExcalidrawIframeElement | import("./types").ExcalidrawEmbeddableElement>(element: T, renderConfig: {
+    static generateElementShape: <T extends import("./types").ExcalidrawRectangleElement | import("./types").ExcalidrawDiamondElement | import("./types").ExcalidrawEllipseElement | import("./types").ExcalidrawTextElement | ExcalidrawLinearElement | import("./types").ExcalidrawArrowElement | ExcalidrawFreeDrawElement | import("./types").ExcalidrawImageElement | import("./types").ExcalidrawFrameElement | import("./types").ExcalidrawEditorFrameElement | import("./types").ExcalidrawMagicFrameElement | import("./types").ExcalidrawIframeElement | import("./types").ExcalidrawEmbeddableElement>(element: T, renderConfig: {
         isExporting: boolean;
         canvasBackgroundColor: AppState["viewBackgroundColor"];
         embedsValidationStatus: EmbedsValidationStatus;

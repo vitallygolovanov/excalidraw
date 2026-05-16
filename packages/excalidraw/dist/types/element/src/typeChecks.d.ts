@@ -1,7 +1,7 @@
 import type { ElementOrToolType } from "@excalidraw/excalidraw/types";
 import type { MarkNonNullable } from "@excalidraw/common/utility-types";
 import type { Bounds } from "./bounds";
-import type { ExcalidrawElement, ExcalidrawTextElement, ExcalidrawEmbeddableElement, ExcalidrawLinearElement, ExcalidrawBindableElement, ExcalidrawFreeDrawElement, InitializedExcalidrawImageElement, ExcalidrawImageElement, ExcalidrawTextElementWithContainer, ExcalidrawTextContainer, ExcalidrawFrameElement, RoundnessType, ExcalidrawFrameLikeElement, ExcalidrawElementType, ExcalidrawIframeElement, ExcalidrawIframeLikeElement, ExcalidrawMagicFrameElement, ExcalidrawArrowElement, ExcalidrawElbowArrowElement, ExcalidrawLineElement, PointBinding, FixedPointBinding, ExcalidrawFlowchartNodeElement, ExcalidrawLinearElementSubType } from "./types";
+import type { ExcalidrawElement, ExcalidrawTextElement, ExcalidrawEmbeddableElement, ExcalidrawLinearElement, ExcalidrawBindableElement, ExcalidrawFreeDrawElement, InitializedExcalidrawImageElement, ExcalidrawImageElement, ExcalidrawTextElementWithContainer, ExcalidrawTextContainer, ExcalidrawFrameElement, ExcalidrawFrameTitleElement, ExcalidrawEditorFrameElement, RoundnessType, ExcalidrawFrameLikeElement, ExcalidrawElementType, ExcalidrawIframeElement, ExcalidrawIframeLikeElement, ExcalidrawMagicFrameElement, ExcalidrawArrowElement, ExcalidrawElbowArrowElement, ExcalidrawLineElement, PointBinding, FixedPointBinding, ExcalidrawFlowchartNodeElement, ExcalidrawLinearElementSubType } from "./types";
 export declare const isInitializedImageElement: (element: ExcalidrawElement | null) => element is InitializedExcalidrawImageElement;
 export declare const isImageElement: (element: ExcalidrawElement | null) => element is ExcalidrawImageElement;
 export declare const isEmbeddableElement: (element: ExcalidrawElement | null | undefined) => element is ExcalidrawEmbeddableElement;
@@ -10,7 +10,9 @@ export declare const isIframeLikeElement: (element: ExcalidrawElement | null) =>
 export declare const isTextElement: (element: ExcalidrawElement | null) => element is ExcalidrawTextElement;
 export declare const isFrameElement: (element: ExcalidrawElement | null) => element is ExcalidrawFrameElement;
 export declare const isMagicFrameElement: (element: ExcalidrawElement | null) => element is ExcalidrawMagicFrameElement;
+export declare const isEditorFrameElement: (element: ExcalidrawElement | null) => element is ExcalidrawEditorFrameElement;
 export declare const isFrameLikeElement: (element: ExcalidrawElement | null) => element is ExcalidrawFrameLikeElement;
+export declare const isFrameTitleElement: (element: ExcalidrawElement | null) => element is ExcalidrawFrameTitleElement;
 export declare const isFreeDrawElement: (element?: ExcalidrawElement | null) => element is ExcalidrawFreeDrawElement;
 export declare const isFreeDrawElementType: (elementType: ExcalidrawElementType) => boolean;
 export declare const isLinearElement: (element?: ExcalidrawElement | null) => element is ExcalidrawLinearElement;

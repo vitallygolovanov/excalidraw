@@ -18,7 +18,11 @@ import {
   getOmitSidesForDevice,
   canResizeFromSides,
 } from "./transformHandles";
-import { isImageElement, isLinearElement } from "./typeChecks";
+import {
+  isEditorFrameElement,
+  isImageElement,
+  isLinearElement,
+} from "./typeChecks";
 
 import type { Bounds } from "./bounds";
 import type {
@@ -54,6 +58,10 @@ export const resizeTest = <Point extends GlobalPoint | LocalPoint>(
   device: Device,
 ): MaybeTransformHandleType => {
   if (!appState.selectedElementIds[element.id]) {
+    return false;
+  }
+
+  if (isEditorFrameElement(element)) {
     return false;
   }
 
