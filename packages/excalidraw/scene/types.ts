@@ -14,6 +14,7 @@ import type {
   EmbedsValidationStatus,
   ElementsPendingErasure,
   InteractiveCanvasAppState,
+  ResolveInteractiveSelectionBounds,
   StaticCanvasAppState,
   SocketId,
   Device,
@@ -71,6 +72,7 @@ export type InteractiveCanvasRenderConfig = {
   // extra options passed to the renderer
   // ---------------------------------------------------------------------------
   renderScrollbars?: boolean;
+  resolveSelectionBounds?: ResolveInteractiveSelectionBounds;
 };
 
 export type RenderInteractiveSceneCallback = {

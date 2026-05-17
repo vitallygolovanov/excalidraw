@@ -66,7 +66,7 @@ export declare const actionClearCanvas: {
             isLoading: boolean;
             errorMessage: import("react").ReactNode;
             activeEmbeddable: {
-                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
                 state: "hover" | "active";
             } | null;
             newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -224,7 +224,7 @@ export declare const actionZoomIn: {
             isLoading: boolean;
             errorMessage: import("react").ReactNode;
             activeEmbeddable: {
-                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
                 state: "hover" | "active";
             } | null;
             newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -412,7 +412,7 @@ export declare const actionZoomOut: {
             isLoading: boolean;
             errorMessage: import("react").ReactNode;
             activeEmbeddable: {
-                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
                 state: "hover" | "active";
             } | null;
             newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -600,7 +600,7 @@ export declare const actionResetZoom: {
             isLoading: boolean;
             errorMessage: import("react").ReactNode;
             activeEmbeddable: {
-                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
                 state: "hover" | "active";
             } | null;
             newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -794,7 +794,7 @@ export declare const zoomToFitBounds: ({ bounds, appState, canvasOffsets, fitToV
         isLoading: boolean;
         errorMessage: import("react").ReactNode;
         activeEmbeddable: {
-            element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+            element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
             state: "hover" | "active";
         } | null;
         newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -984,7 +984,7 @@ export declare const zoomToFit: ({ canvasOffsets, targetElements, appState, fitT
         isLoading: boolean;
         errorMessage: import("react").ReactNode;
         activeEmbeddable: {
-            element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+            element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
             state: "hover" | "active";
         } | null;
         newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -1166,7 +1166,7 @@ export declare const actionZoomToFitSelectionInViewport: {
             isLoading: boolean;
             errorMessage: import("react").ReactNode;
             activeEmbeddable: {
-                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
                 state: "hover" | "active";
             } | null;
             newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -1352,7 +1352,7 @@ export declare const actionZoomToFitSelection: {
             isLoading: boolean;
             errorMessage: import("react").ReactNode;
             activeEmbeddable: {
-                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
                 state: "hover" | "active";
             } | null;
             newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -1539,7 +1539,7 @@ export declare const actionZoomToFit: {
             isLoading: boolean;
             errorMessage: import("react").ReactNode;
             activeEmbeddable: {
-                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
                 state: "hover" | "active";
             } | null;
             newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;
@@ -1723,7 +1723,7 @@ export declare const actionToggleTheme: {
             isLoading: boolean;
             errorMessage: import("react").ReactNode;
             activeEmbeddable: {
-                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement; /** zoom content to cover X of the viewport, when fitToViewport=true */
+                element: import("@excalidraw/element/types").NonDeletedExcalidrawElement;
                 state: "hover" | "active";
             } | null;
             newElement: import("@excalidraw/element/types").NonDeleted<import("@excalidraw/element/types").ExcalidrawNonSelectionElement> | null;

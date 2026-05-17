@@ -241,6 +241,8 @@ export type InteractiveCanvasAppState = Readonly<
     multiElement: AppState["multiElement"];
     isBindingEnabled: AppState["isBindingEnabled"];
     suggestedBindings: AppState["suggestedBindings"];
+    selectedElementsAreBeingDragged: AppState["selectedElementsAreBeingDragged"];
+    isResizing: AppState["isResizing"];
     isRotating: AppState["isRotating"];
     elementsToHighlight: AppState["elementsToHighlight"];
     // Collaborators
@@ -257,6 +259,21 @@ export type InteractiveCanvasAppState = Readonly<
     activeLockedId: AppState["activeLockedId"];
   }
 >;
+
+export type InteractiveSelectionBounds = Readonly<{
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  cx: number;
+  cy: number;
+}>;
+
+export type ResolveInteractiveSelectionBounds = (args: {
+  element: NonDeletedExcalidrawElement;
+  bounds: InteractiveSelectionBounds;
+  appState: InteractiveCanvasAppState;
+}) => InteractiveSelectionBounds | null;
 
 export type ObservedAppState = ObservedStandaloneAppState &
   ObservedElementsAppState;
@@ -674,6 +691,7 @@ export interface ExcalidrawProps {
     element: NonDeleted<ExcalidrawEmbeddableElement>,
     appState: AppState,
   ) => JSX.Element | null;
+  resolveSelectionBounds?: ResolveInteractiveSelectionBounds;
   aiEnabled?: boolean;
   showDeprecatedFonts?: boolean;
   renderScrollbars?: boolean;

@@ -948,11 +948,28 @@ const _renderInteractiveScene = ({
         }
 
         if (selectionColors.length) {
-          const [x1, y1, x2, y2, cx, cy] = getElementAbsoluteCoords(
+          const [elementX1, elementY1, elementX2, elementY2, elementCx, elementCy] =
+            getElementAbsoluteCoords(element, elementsMap, true);
+          const resolvedSelectionBounds = renderConfig.resolveSelectionBounds?.({
             element,
-            elementsMap,
-            true,
-          );
+            bounds: {
+              x1: elementX1,
+              y1: elementY1,
+              x2: elementX2,
+              y2: elementY2,
+              cx: elementCx,
+              cy: elementCy,
+            },
+            appState,
+          });
+          const { x1, y1, x2, y2, cx, cy } = resolvedSelectionBounds ?? {
+            x1: elementX1,
+            y1: elementY1,
+            x2: elementX2,
+            y2: elementY2,
+            cx: elementCx,
+            cy: elementCy,
+          };
           selections.push({
             angle: element.angle,
             x1,
@@ -1017,7 +1034,7 @@ const _renderInteractiveScene = ({
         selectedElements[0],
         appState.zoom,
         elementsMap,
-        "mouse", // when we render we don't know which pointer type so use mouse,
+        "mouse",
         getOmitSidesForDevice(device),
       );
       if (

@@ -20,7 +20,12 @@ import type {
   RenderableElementsMap,
   RenderInteractiveSceneCallback,
 } from "../../scene/types";
-import type { AppState, Device, InteractiveCanvasAppState } from "../../types";
+import type {
+  AppState,
+  Device,
+  InteractiveCanvasAppState,
+  ResolveInteractiveSelectionBounds,
+} from "../../types";
 import type { DOMAttributes } from "react";
 
 type InteractiveCanvasProps = {
@@ -36,6 +41,7 @@ type InteractiveCanvasProps = {
   appState: InteractiveCanvasAppState;
   renderScrollbars: boolean;
   renderRemoteCursorsOnCanvas: boolean;
+  resolveSelectionBounds?: ResolveInteractiveSelectionBounds;
   device: Device;
   renderInteractiveSceneCallback: (
     data: RenderInteractiveSceneCallback,
@@ -150,6 +156,7 @@ const InteractiveCanvas = (props: InteractiveCanvasProps) => {
           remotePointerUserStates,
           selectionColor,
           renderScrollbars: props.renderScrollbars,
+          resolveSelectionBounds: props.resolveSelectionBounds,
         },
         device: props.device,
         callback: props.renderInteractiveSceneCallback,
@@ -209,6 +216,8 @@ const getRelevantAppStateProps = (
   multiElement: appState.multiElement,
   isBindingEnabled: appState.isBindingEnabled,
   suggestedBindings: appState.suggestedBindings,
+  selectedElementsAreBeingDragged: appState.selectedElementsAreBeingDragged,
+  isResizing: appState.isResizing,
   isRotating: appState.isRotating,
   elementsToHighlight: appState.elementsToHighlight,
   collaborators: appState.collaborators, // Necessary for collab. sessions

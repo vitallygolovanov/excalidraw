@@ -153,6 +153,8 @@ export type InteractiveCanvasAppState = Readonly<_CommonCanvasAppState & {
     multiElement: AppState["multiElement"];
     isBindingEnabled: AppState["isBindingEnabled"];
     suggestedBindings: AppState["suggestedBindings"];
+    selectedElementsAreBeingDragged: AppState["selectedElementsAreBeingDragged"];
+    isResizing: AppState["isResizing"];
     isRotating: AppState["isRotating"];
     elementsToHighlight: AppState["elementsToHighlight"];
     collaborators: AppState["collaborators"];
@@ -164,6 +166,19 @@ export type InteractiveCanvasAppState = Readonly<_CommonCanvasAppState & {
     searchMatches: AppState["searchMatches"];
     activeLockedId: AppState["activeLockedId"];
 }>;
+export type InteractiveSelectionBounds = Readonly<{
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    cx: number;
+    cy: number;
+}>;
+export type ResolveInteractiveSelectionBounds = (args: {
+    element: NonDeletedExcalidrawElement;
+    bounds: InteractiveSelectionBounds;
+    appState: InteractiveCanvasAppState;
+}) => InteractiveSelectionBounds | null;
 export type ObservedAppState = ObservedStandaloneAppState & ObservedElementsAppState;
 export type ObservedStandaloneAppState = {
     name: AppState["name"];
@@ -502,6 +517,7 @@ export interface ExcalidrawProps {
     children?: React.ReactNode;
     validateEmbeddable?: boolean | string[] | RegExp | RegExp[] | ((link: string) => boolean | undefined);
     renderEmbeddable?: (element: NonDeleted<ExcalidrawEmbeddableElement>, appState: AppState) => JSX.Element | null;
+    resolveSelectionBounds?: ResolveInteractiveSelectionBounds;
     aiEnabled?: boolean;
     showDeprecatedFonts?: boolean;
     renderScrollbars?: boolean;

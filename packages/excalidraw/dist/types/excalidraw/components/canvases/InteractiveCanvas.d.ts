@@ -1,7 +1,7 @@
 import React from "react";
 import type { NonDeletedExcalidrawElement, NonDeletedSceneElementsMap } from "@excalidraw/element/types";
 import type { RenderableElementsMap, RenderInteractiveSceneCallback } from "../../scene/types";
-import type { Device, InteractiveCanvasAppState } from "../../types";
+import type { Device, InteractiveCanvasAppState, ResolveInteractiveSelectionBounds } from "../../types";
 import type { DOMAttributes } from "react";
 type InteractiveCanvasProps = {
     containerRef: React.RefObject<HTMLDivElement | null>;
@@ -16,6 +16,7 @@ type InteractiveCanvasProps = {
     appState: InteractiveCanvasAppState;
     renderScrollbars: boolean;
     renderRemoteCursorsOnCanvas: boolean;
+    resolveSelectionBounds?: ResolveInteractiveSelectionBounds;
     device: Device;
     renderInteractiveSceneCallback: (data: RenderInteractiveSceneCallback) => void;
     handleCanvasRef: (canvas: HTMLCanvasElement | null) => void;

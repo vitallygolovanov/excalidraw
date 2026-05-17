@@ -1,7 +1,7 @@
 import type { UserIdleState } from "@excalidraw/common";
 import type { ExcalidrawElement, NonDeletedElementsMap, NonDeletedExcalidrawElement, NonDeletedSceneElementsMap } from "@excalidraw/element/types";
 import type { MakeBrand } from "@excalidraw/common/utility-types";
-import type { AppClassProperties, AppState, EmbedsValidationStatus, ElementsPendingErasure, InteractiveCanvasAppState, StaticCanvasAppState, SocketId, Device, PendingExcalidrawElements } from "../types";
+import type { AppClassProperties, AppState, EmbedsValidationStatus, ElementsPendingErasure, InteractiveCanvasAppState, ResolveInteractiveSelectionBounds, StaticCanvasAppState, SocketId, Device, PendingExcalidrawElements } from "../types";
 import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { Drawable } from "roughjs/bin/core";
 export type RenderableElementsMap = NonDeletedElementsMap & MakeBrand<"RenderableElementsMap">;
@@ -46,6 +46,7 @@ export type InteractiveCanvasRenderConfig = {
     remotePointerButton: Map<SocketId, string | undefined>;
     selectionColor: string;
     renderScrollbars?: boolean;
+    resolveSelectionBounds?: ResolveInteractiveSelectionBounds;
 };
 export type RenderInteractiveSceneCallback = {
     atLeastOneVisibleElement: boolean;

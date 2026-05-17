@@ -1979,6 +1979,9 @@ class App extends React.Component<AppProps, AppState> {
                           renderScrollbars={
                             this.props.renderScrollbars === true
                           }
+                          resolveSelectionBounds={
+                            this.props.resolveSelectionBounds
+                          }
                           renderRemoteCursorsOnCanvas={
                             this.props.renderRemoteCursorsOnCanvas !== false
                           }
