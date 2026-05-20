@@ -422,6 +422,7 @@ import { MagicIcon, copyIcon, fullscreenIcon } from "./icons";
 import { Toast } from "./Toast";
 
 import { findShapeByKey } from "./shapes";
+import { getDisplayedFrameTitle } from "../frameTitle";
 
 import UnlockPopup from "./UnlockPopup";
 
@@ -1558,7 +1559,7 @@ class App extends React.Component<AppProps, AppState> {
 
       const frameName =
         f.type === "editor_frame"
-          ? f.name?.trim() || "Frame"
+          ? getDisplayedFrameTitle(f, this.props.resolveFrameTitle)
           : getFrameLikeTitle(f);
       const canEditFrameName = isFrameLikeElement(f);
 

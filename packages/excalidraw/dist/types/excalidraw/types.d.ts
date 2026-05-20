@@ -446,6 +446,7 @@ export type OnUserFollowedPayload = {
 };
 export type FileEventResolver = (fileId: FileId, event: string | Event, resolve?: (value: HTMLImageElement | PromiseLike<HTMLImageElement>) => void, reject?: (reason?: any) => void) => void;
 export type EventResolver = (event: string | Event, resolve?: (value: HTMLImageElement | PromiseLike<HTMLImageElement>) => void, reject?: (reason?: any) => void) => void;
+export type ResolveFrameTitle = (element: ExcalidrawFrameTitleElement) => string | null | undefined;
 export interface ExcalidrawProps {
     onChange?: (elements: readonly OrderedExcalidrawElement[], appState: AppState, files: BinaryFiles) => void;
     onIncrement?: (event: DurableIncrement | EphemeralIncrement) => void;
@@ -517,6 +518,7 @@ export interface ExcalidrawProps {
     children?: React.ReactNode;
     validateEmbeddable?: boolean | string[] | RegExp | RegExp[] | ((link: string) => boolean | undefined);
     renderEmbeddable?: (element: NonDeleted<ExcalidrawEmbeddableElement>, appState: AppState) => JSX.Element | null;
+    resolveFrameTitle?: ResolveFrameTitle;
     resolveSelectionBounds?: ResolveInteractiveSelectionBounds;
     aiEnabled?: boolean;
     showDeprecatedFonts?: boolean;

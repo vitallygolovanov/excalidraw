@@ -581,6 +581,10 @@ export type EventResolver = (
   reject?: (reason?: any) => void
 ) => void;
 
+export type ResolveFrameTitle = (
+  element: ExcalidrawFrameTitleElement,
+) => string | null | undefined;
+
 export interface ExcalidrawProps {
   onChange?: (
     elements: readonly OrderedExcalidrawElement[],
@@ -691,6 +695,7 @@ export interface ExcalidrawProps {
     element: NonDeleted<ExcalidrawEmbeddableElement>,
     appState: AppState,
   ) => JSX.Element | null;
+  resolveFrameTitle?: ResolveFrameTitle;
   resolveSelectionBounds?: ResolveInteractiveSelectionBounds;
   aiEnabled?: boolean;
   showDeprecatedFonts?: boolean;
