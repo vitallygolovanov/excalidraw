@@ -29,8 +29,8 @@ import type {
 } from "@excalidraw/element/types";
 
 import {
-  EXTERNAL_LINK_IMG,
-  ELEMENT_LINK_IMG,
+  getElementLinkImg,
+  getExternalLinkImg,
   getLinkHandleFromCoords,
 } from "../components/hyperlink/helpers";
 
@@ -155,7 +155,12 @@ const frameClip = (
   );
 };
 
-type LinkIconCanvas = HTMLCanvasElement & { zoom: number };
+type LinkIconCanvas = HTMLCanvasElement & {
+  zoom: number;
+  theme: StaticCanvasAppState["theme"];
+  /** `null` means transparent chip background (dark theme). */
+  chipBackground: string | null;
+};
 
 const linkIconCanvasCache: {
   regularLink: LinkIconCanvas | null;
@@ -163,6 +168,15 @@ const linkIconCanvasCache: {
 } = {
   regularLink: null,
   elementLink: null,
+};
+
+const getLinkIconChipBackground = (
+  appState: StaticCanvasAppState,
+): string | null => {
+  if (appState.theme === THEME.DARK) {
+    return null;
+  }
+  return appState.viewBackgroundColor || "#fff";
 };
 
 const renderLinkIcon = (
@@ -188,11 +202,19 @@ const renderLinkIcon = (
       ? "elementLink"
       : "regularLink";
 
+    const chipBackground = getLinkIconChipBackground(appState);
     let linkCanvas = linkIconCanvasCache[canvasKey];
 
-    if (!linkCanvas || linkCanvas.zoom !== appState.zoom.value) {
+    if (
+      !linkCanvas ||
+      linkCanvas.zoom !== appState.zoom.value ||
+      linkCanvas.theme !== appState.theme ||
+      linkCanvas.chipBackground !== chipBackground
+    ) {
       linkCanvas = Object.assign(document.createElement("canvas"), {
         zoom: appState.zoom.value,
+        theme: appState.theme,
+        chipBackground,
       });
       linkCanvas.width = width * window.devicePixelRatio * appState.zoom.value;
       linkCanvas.height =
@@ -204,20 +226,18 @@ const renderLinkIcon = (
         window.devicePixelRatio * appState.zoom.value,
         window.devicePixelRatio * appState.zoom.value,
       );
-      linkCanvasCacheContext.fillStyle = appState.viewBackgroundColor || "#fff";
-      linkCanvasCacheContext.fillRect(0, 0, width, height);
-
-      if (canvasKey === "elementLink") {
-        linkCanvasCacheContext.drawImage(ELEMENT_LINK_IMG, 0, 0, width, height);
+      if (chipBackground !== null) {
+        linkCanvasCacheContext.fillStyle = chipBackground;
+        linkCanvasCacheContext.fillRect(0, 0, width, height);
       } else {
-        linkCanvasCacheContext.drawImage(
-          EXTERNAL_LINK_IMG,
-          0,
-          0,
-          width,
-          height,
-        );
+        linkCanvasCacheContext.clearRect(0, 0, width, height);
       }
+
+      const linkIconImage =
+        canvasKey === "elementLink"
+          ? getElementLinkImg(appState.theme)
+          : getExternalLinkImg(appState.theme);
+      linkCanvasCacheContext.drawImage(linkIconImage, 0, 0, width, height);
 
       linkCanvasCacheContext.restore();
     }
