@@ -328,6 +328,12 @@ import { exportCanvas, loadFromBlob } from "../data";
 import Library, { distributeLibraryItemsOnSquareGrid } from "../data/library";
 import { restore, restoreElements } from "../data/restore";
 import { getCenter, getDistance } from "../gesture";
+import {
+  applyPinchGestureStep,
+  replaceGesturePointersFromHost,
+  resetPinchGestureState,
+  type ApplyPinchGestureDeps,
+} from "../gesture/hostPinchGesture";
 import { History } from "../history";
 import { defaultLang, getLanguage, languages, setLanguage, t } from "../i18n";
 
@@ -446,6 +452,8 @@ import type {
   ExcalidrawImperativeAPI,
   BinaryFiles,
   Gesture,
+  HostPinchGestureResult,
+  HostPinchPointer,
   GestureEvent,
   LibraryItems,
   PointerDownState,
@@ -888,6 +896,8 @@ class App extends React.Component<AppProps, AppState> {
         onPointerUp: (cb) => this.onPointerUpEmitter.on(cb),
         onScrollChange: (cb) => this.onScrollChangeEmitter.on(cb),
         onUserFollow: (cb) => this.onUserFollowEmitter.on(cb),
+        applyPinchGesture: this.applyPinchGesture,
+        resetPinchGesture: this.resetPinchGesture,
       } as const;
       if (typeof excalidrawAPI === "function") {
         excalidrawAPI(api);
@@ -3786,6 +3796,30 @@ class App extends React.Component<AppProps, AppState> {
     gesture.pointers.delete(event.pointerId);
   };
 
+  private getApplyPinchGestureDeps = (): ApplyPinchGestureDeps => ({
+    gesture,
+    zoomValue: this.state.zoom.value,
+    isFreedrawPenMode:
+      this.state.activeTool.type === "freedraw" && this.state.penMode,
+    getNormalizedZoom,
+    rememberFollowViewportZoomAnchor: this.rememberFollowViewportZoomAnchor,
+    resetShouldCacheIgnoreZoomDebounced:
+      this.resetShouldCacheIgnoreZoomDebounced,
+    setState: this.setState,
+    translateCanvas: this.translateCanvas,
+  });
+
+  applyPinchGesture = (
+    pointers: readonly HostPinchPointer[],
+  ): HostPinchGestureResult => {
+    replaceGesturePointersFromHost(gesture, pointers);
+    return applyPinchGestureStep(this.getApplyPinchGestureDeps(), "host");
+  };
+
+  resetPinchGesture = () => {
+    resetPinchGestureState(gesture);
+  };
+
   toggleLock = (source: "keyboard" | "ui" = "ui") => {
     if (!this.state.activeTool.locked) {
       trackEvent(
@@ -6315,57 +6349,7 @@ class App extends React.Component<AppProps, AppState> {
       });
     }
 
-    const initialScale = gesture.initialScale;
-    if (
-      gesture.pointers.size === 2 &&
-      gesture.lastCenter &&
-      initialScale &&
-      gesture.initialDistance
-    ) {
-      const center = getCenter(gesture.pointers);
-      const deltaX = center.x - gesture.lastCenter.x;
-      const deltaY = center.y - gesture.lastCenter.y;
-      gesture.lastCenter = center;
-
-      const distance = getDistance(Array.from(gesture.pointers.values()));
-      const scaleFactor =
-        this.state.activeTool.type === "freedraw" && this.state.penMode
-          ? 1
-          : distance / gesture.initialDistance;
-
-      const nextZoom = scaleFactor
-        ? getNormalizedZoom(initialScale * scaleFactor)
-        : this.state.zoom.value;
-
-      this.rememberFollowViewportZoomAnchor(center.x, center.y);
-
-      this.setState((state) => {
-        const zoomState = getStateForZoom(
-          {
-            viewportX: center.x,
-            viewportY: center.y,
-            nextZoom,
-          },
-          state,
-        );
-
-        this.translateCanvas({
-          zoom: zoomState.zoom,
-          // 2x multiplier is just a magic number that makes this work correctly
-          // on touchscreen devices (note: if we get report that panning is slower/faster
-          // than actual movement, consider swapping with devicePixelRatio)
-          scrollX: zoomState.scrollX + 2 * (deltaX / nextZoom),
-          scrollY: zoomState.scrollY + 2 * (deltaY / nextZoom),
-          shouldCacheIgnoreZoom: true,
-        });
-      });
-      this.resetShouldCacheIgnoreZoomDebounced();
-    } else {
-      gesture.lastCenter =
-        gesture.initialDistance =
-        gesture.initialScale =
-          null;
-    }
+    applyPinchGestureStep(this.getApplyPinchGestureDeps(), "native-move");
 
     if (
       isHoldingSpace ||

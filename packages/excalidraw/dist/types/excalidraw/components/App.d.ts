@@ -13,7 +13,7 @@ import { LassoTrail } from "../lasso";
 import { EraserTrail } from "../eraser";
 import type { ExportedElements } from "../data";
 import type { FileSystemHandle } from "../data/filesystem";
-import type { AppClassProperties, AppProps, AppState, ExcalidrawImperativeAPI, BinaryFiles, LibraryItems, SceneData, Device, FrameNameBoundsCache, SidebarName, SidebarTabName, ToolType, OnUserFollowedPayload, GenerateDiagramToCode, NullableGridSize, Offsets } from "../types";
+import type { AppClassProperties, AppProps, AppState, ExcalidrawImperativeAPI, BinaryFiles, HostPinchGestureResult, HostPinchPointer, LibraryItems, SceneData, Device, FrameNameBoundsCache, SidebarName, SidebarTabName, ToolType, OnUserFollowedPayload, GenerateDiagramToCode, NullableGridSize, Offsets } from "../types";
 import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { ActionResult } from "../actions/types";
 export declare const ExcalidrawContainerContext: React.Context<{
@@ -341,6 +341,9 @@ declare class App extends React.Component<AppProps, AppState> {
     private addTextFromPaste;
     setAppState: React.Component<any, AppState>["setState"];
     removePointer: (event: React.PointerEvent<HTMLElement> | PointerEvent) => void;
+    private getApplyPinchGestureDeps;
+    applyPinchGesture: (pointers: readonly HostPinchPointer[]) => HostPinchGestureResult;
+    resetPinchGesture: () => void;
     toggleLock: (source?: "keyboard" | "ui") => void;
     updateFrameRendering: (opts: Partial<{
         enabled: boolean;

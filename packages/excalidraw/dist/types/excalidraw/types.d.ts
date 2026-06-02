@@ -416,6 +416,13 @@ export type Gesture = {
     initialScale: number | null;
     wasMultiTouchGesture: boolean;
 };
+export type HostPinchPointer = {
+    pointerId: number;
+    /** Viewport/client coordinates (same as PointerEvent.clientX/Y) */
+    x: number;
+    y: number;
+};
+export type HostPinchGestureResult = "ignored" | "started" | "applied" | "reset";
 export declare class GestureEvent extends UIEvent {
     readonly rotation: number;
     readonly scale: number;
@@ -716,6 +723,8 @@ export interface ExcalidrawImperativeAPI {
     onPointerUp: (callback: (activeTool: AppState["activeTool"], pointerDownState: PointerDownState, event: PointerEvent) => void) => UnsubscribeCallback;
     onScrollChange: (callback: (scrollX: number, scrollY: number, zoom: Zoom) => void) => UnsubscribeCallback;
     onUserFollow: (callback: (payload: OnUserFollowedPayload) => void) => UnsubscribeCallback;
+    applyPinchGesture: (pointers: readonly HostPinchPointer[]) => HostPinchGestureResult;
+    resetPinchGesture: () => void;
 }
 export type Device = Readonly<{
     viewport: {
