@@ -263,7 +263,7 @@
     "shapes": "Oblike"
   },
   "hints": {
-    "canvasPanning": "Za premikanje platna med vlečenjem držite kolesce miške ali preslednico ali uporabite orodje roka",
+    "canvasPanning": "Za premikanje platna med vlečenjem držite srednji ali desni gumb miške ali se pomikajte s Ctrl/Cmd + kolescem",
     "linearElement": "Kliknite za začetek več točk, povlecite za posamezno črto",
     "freeDraw": "Kliknite in povlecite, spustite, ko končate",
     "text": "Namig: besedilo lahko dodate tudi z dvoklikom kjer koli z orodjem za izbiro",

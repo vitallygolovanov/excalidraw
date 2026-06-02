@@ -14,7 +14,7 @@ import {
   replaceAllElementsInFrame,
 } from "@excalidraw/element";
 
-import { KEYS, randomId, arrayToMap, getShortcutKey } from "@excalidraw/common";
+import { KEYS, randomId, arrayToMap, getShortcutKey, matchKey } from "@excalidraw/common";
 
 import {
   getSelectedGroupIds,
@@ -195,7 +195,7 @@ export const actionGroup = register({
   predicate: (elements, appState, _, app) =>
     enableActionGroup(elements, appState, app),
   keyTest: (event) =>
-    !event.shiftKey && event[KEYS.CTRL_OR_CMD] && event.key === KEYS.G,
+    !event.shiftKey && event[KEYS.CTRL_OR_CMD] && matchKey(event, KEYS.G),
   PanelComponent: ({ elements, appState, updateData, app }) => (
     <ToolButton
       hidden={!enableActionGroup(elements, appState, app)}
@@ -302,7 +302,7 @@ export const actionUngroup = register({
   keyTest: (event) =>
     event.shiftKey &&
     event[KEYS.CTRL_OR_CMD] &&
-    event.key === KEYS.G.toUpperCase(),
+    matchKey(event, KEYS.G),
   predicate: (elements, appState) => getSelectedGroupIds(appState).length > 0,
 
   PanelComponent: ({ elements, appState, updateData }) => (

@@ -59,4 +59,6 @@ export declare const SHAPES: readonly [{
     readonly numericKey: "0";
     readonly fillable: false;
 }];
+export declare const findShapeByEvent: (event: KeyboardEvent | React.KeyboardEvent<Element>) => "text" | "line" | "arrow" | "selection" | "rectangle" | "diamond" | "ellipse" | "freedraw" | "image" | "eraser" | null;
+/** @deprecated use findShapeByEvent for layout-aware matching */
 export declare const findShapeByKey: (key: string) => "text" | "line" | "arrow" | "selection" | "rectangle" | "diamond" | "ellipse" | "freedraw" | "image" | "eraser" | null;

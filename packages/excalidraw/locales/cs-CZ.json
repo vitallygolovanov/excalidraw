@@ -263,7 +263,7 @@
     "shapes": "Tvary"
   },
   "hints": {
-    "canvasPanning": "Chcete-li přesunout plátno, podržte kolečko nebo mezerník při tažení nebo použijte nástroj Ruka",
+    "canvasPanning": "Chcete-li přesunout plátno, podržte střední nebo pravé tlačítko myši při tažení nebo posouvejte kolečkem se Ctrl/Cmd",
     "linearElement": "Kliknutím pro více bodů, táhnutím pro jednu čáru",
     "freeDraw": "Klikněte a táhněte, pro ukončení pusťte",
     "text": "Tip: Text můžete také přidat dvojitým kliknutím kdekoli pomocí nástroje pro výběr",

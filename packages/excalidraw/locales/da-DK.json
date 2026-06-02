@@ -263,7 +263,7 @@
     "shapes": "Former"
   },
   "hints": {
-    "canvasPanning": "For at flytte lærred, hold musehjulet eller mellemrumstasten mens du trækker, eller brug håndværktøjet",
+    "canvasPanning": "For at flytte lærredet, hold midter- eller højre museknap nede mens du trækker, eller scroll med Ctrl/Cmd + hjul",
     "linearElement": "Klik for at starte flere punkter, træk for enkelt linje",
     "freeDraw": "Klik og træk, slip når du er færdig",
     "text": "Tip: du kan også tilføje tekst ved at dobbeltklikke hvor som helst med det valgte værktøj",

@@ -705,6 +705,8 @@ export interface ExcalidrawProps {
   showFollowModeChrome?: boolean;
   customFileResolutionEnabled?: boolean;
   debugFollowViewportSmoothingVisible?: boolean;
+  /** When true, Page Up/Down no longer pan the canvas (host handles navigation). */
+  disableCanvasPageScroll?: boolean;
 }
 
 export type SceneData = {

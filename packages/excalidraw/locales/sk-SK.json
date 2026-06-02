@@ -263,7 +263,7 @@
     "shapes": "Tvary"
   },
   "hints": {
-    "canvasPanning": "Pre pohyb plátna podržte koliesko myši alebo medzerník počas ťahania, alebo použite nástroj ruka",
+    "canvasPanning": "Pre pohyb plátna podržte stredné alebo pravé tlačidlo myši počas ťahania alebo posúvajte kolieskom so Ctrl/Cmd",
     "linearElement": "Kliknite na vloženie viacerých bodov, potiahnite na vytvorenie jednej priamky",
     "freeDraw": "Kliknite a ťahajte, pustite na ukončenie",
     "text": "Tip: text môžete pridať aj dvojklikom kdekoľvek, ak je zvolený nástroj výber",

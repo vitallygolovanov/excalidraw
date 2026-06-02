@@ -263,7 +263,7 @@
     "shapes": "Muodot"
   },
   "hints": {
-    "canvasPanning": "Piirtoalueen liikuttamiseksi pidä hiiren pyörää tai välilyöntiä pohjassa tai käytä käsityökalua",
+    "canvasPanning": "Siirrä piirtoaluetta pitämällä hiiren keskimmäistä tai oikeaa painiketta painettuna vetämisen aikana tai vierittämällä Ctrl/Cmd + rullalla",
     "linearElement": "Klikkaa piirtääksesi useampi piste, raahaa piirtääksesi yksittäinen viiva",
     "freeDraw": "Paina ja raahaa, päästä irti kun olet valmis",
     "text": "Vinkki: voit myös lisätä tekstiä kaksoisnapsauttamalla mihin tahansa valintatyökalulla",

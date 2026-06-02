@@ -330,7 +330,7 @@
   },
   "hints": {
     "dismissSearch": "Escape to dismiss search",
-    "canvasPanning": "To move canvas, hold mouse wheel or spacebar while dragging, or use the hand tool",
+    "canvasPanning": "To move canvas, hold middle or right mouse button while dragging, or scroll with Ctrl/Cmd + wheel",
     "linearElement": "Click to start multiple points, drag for single line",
     "arrowTool": "Click to start multiple points, drag for single line. Press {{arrowShortcut}} again to change arrow type.",
     "freeDraw": "Click and drag, release when you're finished",
@@ -427,6 +427,11 @@
     "toggleElementLock": "Lock/unlock selection",
     "movePageUpDown": "Move page up/down",
     "movePageLeftRight": "Move page left/right",
+    "movePageHomeEnd": "Scroll to top/bottom of canvas",
+    "scrollCanvas": "Scroll canvas",
+    "zoomCanvas": "Zoom canvas",
+    "mouseWheel": "Mouse wheel",
+    "middleOrRightMouseDrag": "Middle/right mouse + drag",
     "cropStart": "Crop image",
     "cropFinish": "Finish image cropping"
   },

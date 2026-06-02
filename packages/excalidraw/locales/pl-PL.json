@@ -263,7 +263,7 @@
     "shapes": "Kształty"
   },
   "hints": {
-    "canvasPanning": "Aby przesunąć płótno, przytrzymaj kółko myszy lub spację podczas przeciągania, albo użyj narzędzia ręki",
+    "canvasPanning": "Aby przesunąć płótno, przytrzymaj środkowy lub prawy przycisk myszy podczas przeciągania albo przewijaj z Ctrl/Cmd + kółkiem",
     "linearElement": "Naciśnij, aby zrobić punkt, przeciągnij, aby narysować linię",
     "freeDraw": "Naciśnij i przeciągnij by rysować, puść kiedy skończysz",
     "text": "Wskazówka: możesz również dodać tekst klikając dwukrotnie gdziekolwiek za pomocą narzędzia zaznaczania",

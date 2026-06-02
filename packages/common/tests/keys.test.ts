@@ -268,4 +268,25 @@ describe("key matcher", async () => {
       ),
     ).toBeTruthy();
   });
+
+  it("should match editing shortcuts on Cyrillic layouts", async () => {
+    expect(
+      matchKey(
+        new KeyboardEvent("keydown", { key: "с", code: "KeyC" }),
+        KEYS.C,
+      ),
+    ).toBeTruthy();
+    expect(
+      matchKey(
+        new KeyboardEvent("keydown", { key: "м", code: "KeyV" }),
+        KEYS.V,
+      ),
+    ).toBeTruthy();
+    expect(
+      matchKey(
+        new KeyboardEvent("keydown", { key: "ф", code: "KeyA" }),
+        KEYS.A,
+      ),
+    ).toBeTruthy();
+  });
 });

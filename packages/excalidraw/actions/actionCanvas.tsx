@@ -11,6 +11,7 @@ import {
   updateActiveTool,
   CODES,
   KEYS,
+  matchKey,
 } from "@excalidraw/common";
 
 import { getNonDeletedElements } from "@excalidraw/element";
@@ -522,7 +523,7 @@ export const actionToggleEraserTool = register({
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },
-  keyTest: (event) => event.key === KEYS.E,
+  keyTest: (event) => matchKey(event, KEYS.E),
 });
 
 export const actionToggleLassoTool = register({
@@ -594,5 +595,5 @@ export const actionToggleHandTool = register({
     };
   },
   keyTest: (event) =>
-    !event.altKey && !event[KEYS.CTRL_OR_CMD] && event.key === KEYS.H,
+    !event.altKey && !event[KEYS.CTRL_OR_CMD] && matchKey(event, KEYS.H),
 });

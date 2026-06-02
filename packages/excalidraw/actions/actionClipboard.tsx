@@ -1,7 +1,7 @@
 import { isTextElement } from "@excalidraw/element";
 import { getTextFromElements } from "@excalidraw/element";
 
-import { CODES, KEYS, isFirefox } from "@excalidraw/common";
+import { CODES, KEYS, isFirefox, matchKey } from "@excalidraw/common";
 
 import { CaptureUpdateAction } from "@excalidraw/element";
 
@@ -118,7 +118,7 @@ export const actionCut = register({
     actionCopy.perform(elements, appState, event, app);
     return actionDeleteSelected.perform(elements, appState, null, app);
   },
-  keyTest: (event) => event[KEYS.CTRL_OR_CMD] && event.key === KEYS.X,
+  keyTest: (event) => event[KEYS.CTRL_OR_CMD] && matchKey(event, KEYS.X),
 });
 
 export const actionCopyAsSvg = register({

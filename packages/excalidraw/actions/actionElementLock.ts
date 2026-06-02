@@ -1,4 +1,4 @@
-import { KEYS, arrayToMap, randomId } from "@excalidraw/common";
+import { KEYS, arrayToMap, randomId, matchKey } from "@excalidraw/common";
 
 import {
   elementsAreInSameGroup,
@@ -142,7 +142,7 @@ export const actionToggleElementLock = register({
   },
   keyTest: (event, appState, elements, app) => {
     return (
-      event.key.toLocaleLowerCase() === KEYS.L &&
+      matchKey(event, KEYS.L) &&
       event[KEYS.CTRL_OR_CMD] &&
       event.shiftKey &&
       app.scene.getSelectedElements({

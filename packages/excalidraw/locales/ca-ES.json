@@ -263,7 +263,7 @@
     "shapes": "Formes"
   },
   "hints": {
-    "canvasPanning": "Per moure el llenç, manteniu premuda la roda del ratolí o la barra espaiadora mentre arrossegueu o utilitzeu l'eina manual",
+    "canvasPanning": "Per moure el llenç, manteniu premuda la rodella central o dreta del ratolí mentre arrossegueu o desplaçeu-vos amb Ctrl/Cmd + la roda",
     "linearElement": "Feu clic per a dibuixar múltiples punts; arrossegueu per a una sola línia",
     "freeDraw": "Feu clic i arrossegueu, deixeu anar per a finalitzar",
     "text": "Consell: també podeu afegir text fent doble clic en qualsevol lloc amb l'eina de selecció",

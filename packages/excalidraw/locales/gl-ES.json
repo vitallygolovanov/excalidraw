@@ -263,7 +263,7 @@
     "shapes": "Formas"
   },
   "hints": {
-    "canvasPanning": "Para mover o lenzo, manteña pulsada a roda do rato ou a barra de espazo mentres arrastra, ou utilice a ferramenta da man",
+    "canvasPanning": "Para mover o lenzo, mantén premido o botón central ou dereito do rato mentres arrastras ou despraza con Ctrl/Cmd + roda",
     "linearElement": "Faga clic para iniciar varios puntos, arrastre para unha sola liña",
     "freeDraw": "Fai clic e arrastra, solta cando acabes",
     "text": "Consello: tamén podes engadir texto facendo dobre-clic en calquera lugar coa ferramenta de selección",

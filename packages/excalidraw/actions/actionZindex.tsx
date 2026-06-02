@@ -19,6 +19,11 @@ import { t } from "../i18n";
 
 import { register } from "./register";
 
+import type { AppState } from "../types";
+
+const hasSelectedElements = (appState: AppState) =>
+  Object.keys(appState.selectedElementIds).length > 0;
+
 export const actionSendBackward = register({
   name: "sendBackward",
   label: "labels.sendBackward",
@@ -33,10 +38,15 @@ export const actionSendBackward = register({
     };
   },
   keyPriority: 40,
-  keyTest: (event) =>
-    event[KEYS.CTRL_OR_CMD] &&
-    !event.shiftKey &&
-    event.code === CODES.BRACKET_LEFT,
+  keyTest: (event, appState) =>
+    (event[KEYS.CTRL_OR_CMD] &&
+      !event.shiftKey &&
+      event.code === CODES.BRACKET_LEFT) ||
+    (hasSelectedElements(appState) &&
+      !event[KEYS.CTRL_OR_CMD] &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key === KEYS.PAGE_DOWN),
   PanelComponent: ({ updateData, appState }) => (
     <button
       type="button"
@@ -63,10 +73,15 @@ export const actionBringForward = register({
     };
   },
   keyPriority: 40,
-  keyTest: (event) =>
-    event[KEYS.CTRL_OR_CMD] &&
-    !event.shiftKey &&
-    event.code === CODES.BRACKET_RIGHT,
+  keyTest: (event, appState) =>
+    (event[KEYS.CTRL_OR_CMD] &&
+      !event.shiftKey &&
+      event.code === CODES.BRACKET_RIGHT) ||
+    (hasSelectedElements(appState) &&
+      !event[KEYS.CTRL_OR_CMD] &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key === KEYS.PAGE_UP),
   PanelComponent: ({ updateData, appState }) => (
     <button
       type="button"
@@ -92,14 +107,19 @@ export const actionSendToBack = register({
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },
-  keyTest: (event) =>
-    isDarwin
+  keyTest: (event, appState) =>
+    (isDarwin
       ? event[KEYS.CTRL_OR_CMD] &&
         event.altKey &&
         event.code === CODES.BRACKET_LEFT
       : event[KEYS.CTRL_OR_CMD] &&
         event.shiftKey &&
-        event.code === CODES.BRACKET_LEFT,
+        event.code === CODES.BRACKET_LEFT) ||
+    (hasSelectedElements(appState) &&
+      !event[KEYS.CTRL_OR_CMD] &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key === KEYS.HOME),
   PanelComponent: ({ updateData, appState }) => (
     <button
       type="button"
@@ -130,14 +150,19 @@ export const actionBringToFront = register({
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },
-  keyTest: (event) =>
-    isDarwin
+  keyTest: (event, appState) =>
+    (isDarwin
       ? event[KEYS.CTRL_OR_CMD] &&
         event.altKey &&
         event.code === CODES.BRACKET_RIGHT
       : event[KEYS.CTRL_OR_CMD] &&
         event.shiftKey &&
-        event.code === CODES.BRACKET_RIGHT,
+        event.code === CODES.BRACKET_RIGHT) ||
+    (hasSelectedElements(appState) &&
+      !event[KEYS.CTRL_OR_CMD] &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key === KEYS.END),
   PanelComponent: ({ updateData, appState }) => (
     <button
       type="button"

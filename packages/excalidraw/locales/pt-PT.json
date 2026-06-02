@@ -263,7 +263,7 @@
     "shapes": "Formas"
   },
   "hints": {
-    "canvasPanning": "Para mover a tela, carregue na roda do rato ou na barra de espaço enquanto arrasta, ou use a ferramenta da mão",
+    "canvasPanning": "Para mover a tela, carregue no botão central ou direito do rato enquanto arrasta ou desloque com Ctrl/Cmd + roda",
     "linearElement": "Clique para iniciar vários pontos, arraste para uma única linha",
     "freeDraw": "Clique e arraste, large quando terminar",
     "text": "Dica: também pode adicionar texto clicando duas vezes em qualquer lugar com a ferramenta de seleção",

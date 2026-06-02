@@ -263,7 +263,7 @@
     "shapes": "Formes"
   },
   "hints": {
-    "canvasPanning": "Pour déplacer la zone de dessin, maintenez la molette de la souris enfoncée ou la barre d'espace tout en faisant glisser, ou utiliser l'outil main.",
+    "canvasPanning": "Pour déplacer la zone de dessin, maintenez le bouton central ou droit de la souris enfoncé pendant le glissement, ou faites défiler avec Ctrl/Cmd + molette",
     "linearElement": "Cliquez pour démarrer plusieurs points, faites glisser pour une seule ligne",
     "freeDraw": "Cliquez et faites glissez, relâchez quand vous avez terminé",
     "text": "Astuce : vous pouvez aussi ajouter du texte en double-cliquant n'importe où avec l'outil de sélection",

@@ -26,6 +26,8 @@ import {
   shouldRotateWithDiscreteAngle,
   isArrowKey,
   KEYS,
+  matchKey,
+  shouldWheelEventZoomCanvas,
   APP_NAME,
   CURSOR_TYPE,
   DEFAULT_MAX_IMAGE_WIDTH_OR_HEIGHT,
@@ -421,7 +423,7 @@ import {
 import { MagicIcon, copyIcon, fullscreenIcon } from "./icons";
 import { Toast } from "./Toast";
 
-import { findShapeByKey } from "./shapes";
+import { findShapeByEvent } from "./shapes";
 import { getDisplayedFrameTitle } from "../frameTitle";
 
 import UnlockPopup from "./UnlockPopup";
@@ -552,6 +554,7 @@ let didTapTwice: boolean = false;
 let tappedTwiceTimer = 0;
 let isHoldingSpace: boolean = false;
 let isPanning: boolean = false;
+let suppressContextMenuAfterRightPan = false;
 let isDraggingScrollBar: boolean = false;
 let currentScrollBars: ScrollBars = { horizontal: null, vertical: null };
 let touchTimeout = 0;
@@ -4821,7 +4824,7 @@ class App extends React.Component<AppProps, AppState> {
 
       if (
         event[KEYS.CTRL_OR_CMD] &&
-        event.key === KEYS.P &&
+        matchKey(event, KEYS.P) &&
         !event.shiftKey &&
         !event.altKey
       ) {
@@ -4834,7 +4837,7 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
 
-      if (event[KEYS.CTRL_OR_CMD] && event.key.toLowerCase() === KEYS.V) {
+      if (event[KEYS.CTRL_OR_CMD] && matchKey(event, KEYS.V)) {
         IS_PLAIN_PASTE = event.shiftKey;
         clearTimeout(IS_PLAIN_PASTE_TIMER);
         // reset (100ms to be safe that we it runs after the ensuing
@@ -4871,7 +4874,7 @@ class App extends React.Component<AppProps, AppState> {
         });
         return;
       } else if (
-        event.key.toLowerCase() === KEYS.E &&
+        matchKey(event, KEYS.E) &&
         event.shiftKey &&
         event[KEYS.CTRL_OR_CMD]
       ) {
@@ -4880,7 +4883,10 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
 
-      if (event.key === KEYS.PAGE_UP || event.key === KEYS.PAGE_DOWN) {
+      if (
+        !this.props.disableCanvasPageScroll &&
+        (event.key === KEYS.PAGE_UP || event.key === KEYS.PAGE_DOWN)
+      ) {
         let offset =
           (event.shiftKey ? this.state.width : this.state.height) /
           this.state.zoom.value;
@@ -5055,7 +5061,7 @@ class App extends React.Component<AppProps, AppState> {
         !this.state.selectionElement &&
         !this.state.selectedElementsAreBeingDragged
       ) {
-        const shape = findShapeByKey(event.key);
+        const shape = findShapeByEvent(event);
         if (shape) {
           if (this.state.activeTool.type !== shape) {
             trackEvent(
@@ -5078,7 +5084,7 @@ class App extends React.Component<AppProps, AppState> {
           }
           this.setActiveTool({ type: shape });
           event.stopPropagation();
-        } else if (event.key === KEYS.Q) {
+        } else if (matchKey(event, KEYS.Q)) {
           this.toggleLock("keyboard");
           event.stopPropagation();
         }
@@ -5090,7 +5096,7 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       if (
-        (event.key === KEYS.G || event.key === KEYS.S) &&
+        (matchKey(event, KEYS.G) || matchKey(event, KEYS.S)) &&
         !event.altKey &&
         !event[KEYS.CTRL_OR_CMD]
       ) {
@@ -5103,14 +5109,14 @@ class App extends React.Component<AppProps, AppState> {
         }
 
         if (
-          event.key === KEYS.G &&
+          matchKey(event, KEYS.G) &&
           (hasBackground(this.state.activeTool.type) ||
             selectedElements.some((element) => hasBackground(element.type)))
         ) {
           this.setState({ openPopup: "elementBackground" });
           event.stopPropagation();
         }
-        if (event.key === KEYS.S) {
+        if (matchKey(event, KEYS.S)) {
           this.setState({ openPopup: "elementStroke" });
           event.stopPropagation();
         }
@@ -5119,7 +5125,7 @@ class App extends React.Component<AppProps, AppState> {
       if (
         !event[KEYS.CTRL_OR_CMD] &&
         event.shiftKey &&
-        event.key.toLowerCase() === KEYS.F
+        matchKey(event, KEYS.F)
       ) {
         const selectedElements = this.scene.getSelectedElements(this.state);
 
@@ -5146,7 +5152,7 @@ class App extends React.Component<AppProps, AppState> {
         }
       }
 
-      if (event.key === KEYS.K && !event.altKey && !event[KEYS.CTRL_OR_CMD]) {
+      if (matchKey(event, KEYS.K) && !event.altKey && !event[KEYS.CTRL_OR_CMD]) {
         if (this.state.activeTool.type === "laser") {
           this.setActiveTool({ type: "selection" });
         } else {
@@ -5164,10 +5170,9 @@ class App extends React.Component<AppProps, AppState> {
 
       // eye dropper
       // -----------------------------------------------------------------------
-      const lowerCased = event.key.toLocaleLowerCase();
-      const isPickingStroke = lowerCased === KEYS.S && event.shiftKey;
+      const isPickingStroke = matchKey(event, KEYS.S) && event.shiftKey;
       const isPickingBackground =
-        event.key === KEYS.I || (lowerCased === KEYS.G && event.shiftKey);
+        matchKey(event, KEYS.I) || (matchKey(event, KEYS.G) && event.shiftKey);
 
       if (isPickingStroke || isPickingBackground) {
         this.openEyeDropper({
@@ -7362,6 +7367,7 @@ class App extends React.Component<AppProps, AppState> {
       !(
         gesture.pointers.size <= 1 &&
         (event.button === POINTER_BUTTON.WHEEL ||
+          event.button === POINTER_BUTTON.SECONDARY ||
           (event.button === POINTER_BUTTON.MAIN && isHoldingSpace) ||
           isHandToolActive(this.state) ||
           this.state.viewModeEnabled)
@@ -7370,6 +7376,10 @@ class App extends React.Component<AppProps, AppState> {
       return false;
     }
     isPanning = true;
+    const isRightButtonPan = event.button === POINTER_BUTTON.SECONDARY;
+    if (isRightButtonPan) {
+      suppressContextMenuAfterRightPan = false;
+    }
 
     // due to event.preventDefault below, container wouldn't get focus
     // automatically
@@ -7397,6 +7407,14 @@ class App extends React.Component<AppProps, AppState> {
       const deltaY = lastY - event.clientY;
       lastX = event.clientX;
       lastY = event.clientY;
+
+      if (
+        isRightButtonPan &&
+        !suppressContextMenuAfterRightPan &&
+        (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)
+      ) {
+        suppressContextMenuAfterRightPan = true;
+      }
 
       /*
        * Prevent paste event if we move while middle clicking on Linux.
@@ -11117,6 +11135,12 @@ class App extends React.Component<AppProps, AppState> {
   private handleCanvasContextMenu = (
     event: React.MouseEvent<HTMLElement | HTMLCanvasElement>,
   ) => {
+    if (suppressContextMenuAfterRightPan) {
+      suppressContextMenuAfterRightPan = false;
+      event.preventDefault();
+      return;
+    }
+
     event.preventDefault();
 
     if (
@@ -11657,8 +11681,9 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       const { deltaX, deltaY } = event;
-      // note that event.ctrlKey is necessary to handle pinch zooming
-      if (event.metaKey || event.ctrlKey) {
+      const shouldZoom = shouldWheelEventZoomCanvas(event as WheelEvent);
+
+      if (shouldZoom) {
         const sign = Math.sign(deltaY);
         const MAX_STEP = ZOOM_STEP * 100;
         const absDelta = Math.abs(deltaY);

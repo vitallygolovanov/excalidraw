@@ -3,6 +3,7 @@ import {
   KEYS,
   arrayToMap,
   getShortcutKey,
+  matchKey,
 } from "@excalidraw/common";
 
 import { getNonDeletedElements } from "@excalidraw/element";
@@ -105,7 +106,7 @@ export const actionDuplicateSelection = register({
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },
-  keyTest: (event) => event[KEYS.CTRL_OR_CMD] && event.key === KEYS.D,
+  keyTest: (event) => event[KEYS.CTRL_OR_CMD] && matchKey(event, KEYS.D),
   PanelComponent: ({ elements, appState, updateData }) => (
     <ToolButton
       type="button"

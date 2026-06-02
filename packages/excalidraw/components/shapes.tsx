@@ -1,4 +1,4 @@
-import { KEYS } from "@excalidraw/common";
+import { KEYS, matchKey } from "@excalidraw/common";
 
 import {
   SelectionIcon,
@@ -86,6 +86,31 @@ export const SHAPES = [
   },
 ] as const;
 
+type KeysValue = (typeof KEYS)[keyof typeof KEYS];
+
+const matchesShapeLetterKey = (
+  event: KeyboardEvent | React.KeyboardEvent<Element>,
+  key: KeysValue | readonly KeysValue[],
+) => {
+  if (typeof key === "string") {
+    return matchKey(event, key);
+  }
+  return key.some((letterKey: KeysValue) => matchKey(event, letterKey));
+};
+
+export const findShapeByEvent = (
+  event: KeyboardEvent | React.KeyboardEvent<Element>,
+) => {
+  const shape = SHAPES.find((shape) => {
+    return (
+      (shape.numericKey != null && matchKey(event, shape.numericKey)) ||
+      (shape.key && matchesShapeLetterKey(event, shape.key))
+    );
+  });
+  return shape?.value || null;
+};
+
+/** @deprecated use findShapeByEvent for layout-aware matching */
 export const findShapeByKey = (key: string) => {
   const shape = SHAPES.find((shape, index) => {
     return (

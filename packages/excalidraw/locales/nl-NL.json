@@ -263,7 +263,7 @@
     "shapes": "Vormen"
   },
   "hints": {
-    "canvasPanning": "Om de canvas te verplaatsen, houd muiswiel of spatiebalk ingedrukt tijdens slepen, of gebruik het handgereedschap",
+    "canvasPanning": "Om de canvas te verplaatsen, houd de middelste of rechter muisknop ingedrukt tijdens slepen, of scroll met Ctrl/Cmd + wiel",
     "linearElement": "Klik om meerdere punten te starten, sleep voor één lijn",
     "freeDraw": "Klik en sleep, laat los als je klaar bent",
     "text": "Tip: je kunt tekst toevoegen door ergens dubbel te klikken met de selectietool",

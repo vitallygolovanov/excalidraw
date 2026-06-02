@@ -263,7 +263,7 @@
     "shapes": "Former"
   },
   "hints": {
-    "canvasPanning": "För att flytta whiteboarden, håll mushjulet eller mellanslagstangenten medan du drar eller använd handverktyget",
+    "canvasPanning": "För att flytta whiteboarden, håll ned mitten- eller höger musknapp medan du drar eller scrolla med Ctrl/Cmd + hjul",
     "linearElement": "Klicka för att starta flera punkter, dra för en linje",
     "freeDraw": "Klicka och dra, släpp när du är klar",
     "text": "Tips: du kan också lägga till text genom att dubbelklicka var som helst med markeringsverktyget",

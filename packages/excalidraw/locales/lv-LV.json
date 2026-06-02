@@ -263,7 +263,7 @@
     "shapes": "Formas"
   },
   "hints": {
-    "canvasPanning": "Lai bīdītu tāfeli, turiet nospiestu ritināšanas vai atstarpes taustiņu, vai izmanto rokas rīku",
+    "canvasPanning": "Lai bīdītu tāfeli, velkot turiet nospiestu peles vidējo vai labo pogu vai ritiniet ar Ctrl/Cmd + riteni",
     "linearElement": "Klikšķiniet, lai sāktu zīmēt vairākus punktus; velciet, lai zīmētu līniju",
     "freeDraw": "Spiediet un velciet; atlaidiet, kad pabeidzat",
     "text": "Ieteikums: lai pievienotu tekstu, varat arī jebkur dubultklikšķināt ar atlases rīku",

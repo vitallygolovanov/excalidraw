@@ -270,6 +270,14 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               shortcuts={[getShortcutKey("CtrlOrCmd+0")]}
             />
             <Shortcut
+              label={t("helpDialog.zoomCanvas")}
+              shortcuts={[t("helpDialog.mouseWheel")]}
+            />
+            <Shortcut
+              label={t("helpDialog.scrollCanvas")}
+              shortcuts={[getShortcutKey("CtrlOrCmd+Wheel")]}
+            />
+            <Shortcut
               label={t("helpDialog.zoomToFit")}
               shortcuts={["Shift+1"]}
             />
@@ -284,6 +292,10 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
             <Shortcut
               label={t("helpDialog.movePageLeftRight")}
               shortcuts={["Shift+PgUp/PgDn"]}
+            />
+            <Shortcut
+              label={t("helpDialog.movePageHomeEnd")}
+              shortcuts={["Home/End"]}
             />
             <Shortcut
               label={t("buttons.zenMode")}
@@ -343,7 +355,8 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               label={t("labels.moveCanvas")}
               shortcuts={[
                 getShortcutKey(`Space+${t("helpDialog.drag")}`),
-                getShortcutKey(`Wheel+${t("helpDialog.drag")}`),
+                t("helpDialog.middleOrRightMouseDrag"),
+                getShortcutKey(`CtrlOrCmd+Wheel`),
               ]}
               isOr={true}
             />
@@ -409,7 +422,9 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
                 isDarwin
                   ? getShortcutKey("CtrlOrCmd+Alt+[")
                   : getShortcutKey("CtrlOrCmd+Shift+["),
+                "Home",
               ]}
+              isOr={true}
             />
             <Shortcut
               label={t("labels.bringToFront")}
@@ -417,15 +432,19 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
                 isDarwin
                   ? getShortcutKey("CtrlOrCmd+Alt+]")
                   : getShortcutKey("CtrlOrCmd+Shift+]"),
+                "End",
               ]}
+              isOr={true}
             />
             <Shortcut
               label={t("labels.sendBackward")}
-              shortcuts={[getShortcutKey("CtrlOrCmd+[")]}
+              shortcuts={[getShortcutKey("CtrlOrCmd+["), "PgDn"]}
+              isOr={true}
             />
             <Shortcut
               label={t("labels.bringForward")}
-              shortcuts={[getShortcutKey("CtrlOrCmd+]")]}
+              shortcuts={[getShortcutKey("CtrlOrCmd+]"), "PgUp"]}
+              isOr={true}
             />
             <Shortcut
               label={t("labels.alignTop")}

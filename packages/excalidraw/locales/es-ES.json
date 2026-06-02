@@ -263,7 +263,7 @@
     "shapes": "Formas"
   },
   "hints": {
-    "canvasPanning": "Para mover el lienzo, mantenga la rueda del ratón o la barra espaciadora mientras arrastra o utilice la herramienta de mano",
+    "canvasPanning": "Para mover el lienzo, mantenga el botón central o derecho del ratón mientras arrastra o desplace con Ctrl/Cmd + rueda",
     "linearElement": "Haz clic para dibujar múltiples puntos, arrastrar para solo una línea",
     "freeDraw": "Haz clic y arrastra, suelta al terminar",
     "text": "Consejo: también puedes añadir texto haciendo doble clic en cualquier lugar con la herramienta de selección",

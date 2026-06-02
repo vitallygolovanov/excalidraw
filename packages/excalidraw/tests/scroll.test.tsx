@@ -112,4 +112,20 @@ describe("appState", () => {
     scrollTest();
     restoreOriginalGetBoundingClientRect();
   });
+
+  it("does not page-scroll when disableCanvasPageScroll is enabled", async () => {
+    mockBoundingClientRect();
+    await render(
+      <Excalidraw
+        handleKeyboardGlobally={true}
+        disableCanvasPageScroll={true}
+      />,
+      {},
+    );
+
+    const initialScrollY = h.state.scrollY;
+    Keyboard.keyPress(KEYS.PAGE_UP);
+    expect(h.state.scrollY).toBe(initialScrollY);
+    restoreOriginalGetBoundingClientRect();
+  });
 });
