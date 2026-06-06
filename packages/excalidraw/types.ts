@@ -720,6 +720,18 @@ export interface ExcalidrawProps {
   debugFollowViewportSmoothingVisible?: boolean;
   /** When true, Page Up/Down no longer pan the canvas (host handles navigation). */
   disableCanvasPageScroll?: boolean;
+  /**
+   * Fork-only. Called at the very top of the internal drop handler.
+   * Return `true` to suppress Excalidraw's built-in file/content insert for this drop.
+   * Receives the scene coordinates of the drop point and the drag event.
+   */
+  shouldSuppressDrop?: (
+    sceneX: number,
+    sceneY: number,
+    event: React.DragEvent<HTMLDivElement>,
+    file: File | null,
+    fileHandle: FileSystemHandle | null,
+  ) => boolean;
 }
 
 export type SceneData = {

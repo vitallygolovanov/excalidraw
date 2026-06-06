@@ -10938,6 +10938,12 @@ class App extends React.Component<AppProps, AppState> {
       this.state,
     );
 
+    // --- fork: allow host to suppress drops (e.g. over editor_frame embeds)
+    if (this.props.shouldSuppressDrop?.(sceneX, sceneY, event, file, fileHandle)) {
+      return;
+    }
+    // --- end fork
+
     try {
       // if image tool not supported, don't show an error here and let it fall
       // through so we still support importing scene data from images. If no
