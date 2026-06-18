@@ -42,7 +42,6 @@ describe("hostPinchGesture", () => {
         getNormalizedZoom: (zoom) => zoom as never,
         rememberFollowViewportZoomAnchor: vi.fn(),
         resetShouldCacheIgnoreZoomDebounced: vi.fn(),
-        setState: vi.fn(),
         translateCanvas: vi.fn(),
       },
       "host",
@@ -64,7 +63,6 @@ describe("hostPinchGesture", () => {
         getNormalizedZoom: (zoom) => zoom as never,
         rememberFollowViewportZoomAnchor: vi.fn(),
         resetShouldCacheIgnoreZoomDebounced: vi.fn(),
-        setState: vi.fn(),
         translateCanvas: vi.fn(),
       },
       "host",
@@ -77,19 +75,25 @@ describe("hostPinchGesture", () => {
     expect(gesture.wasMultiTouchGesture).toBe(true);
   });
 
+  // translateCanvas now receives a functional updater (state) => partial,
+  // rather than a precomputed object. Invoke it with a mock state to assert the
+  // resulting zoom/scroll.
+  const mockState = {
+    offsetLeft: 0,
+    offsetTop: 0,
+    scrollX: 0,
+    scrollY: 0,
+    zoom: { value: 1 },
+  } as never;
+  const runTranslateUpdater = (
+    translateCanvas: ReturnType<typeof vi.fn>,
+    callIndex = 0,
+  ) => translateCanvas.mock.calls[callIndex][0](mockState);
+
   it("applies zoom when distance increases", () => {
     const gesture = createGesture();
     const rememberFollowViewportZoomAnchor = vi.fn();
     const translateCanvas = vi.fn();
-    const setState = vi.fn((updater) => {
-      updater({
-        offsetLeft: 0,
-        offsetTop: 0,
-        scrollX: 0,
-        scrollY: 0,
-        zoom: { value: 1 },
-      } as never);
-    });
 
     replaceGesturePointersFromHost(gesture, twoPointers(80));
     applyPinchGestureStep(
@@ -100,7 +104,6 @@ describe("hostPinchGesture", () => {
         getNormalizedZoom: (zoom) => zoom as never,
         rememberFollowViewportZoomAnchor,
         resetShouldCacheIgnoreZoomDebounced: vi.fn(),
-        setState,
         translateCanvas,
       },
       "host",
@@ -115,7 +118,6 @@ describe("hostPinchGesture", () => {
         getNormalizedZoom: (zoom) => zoom as never,
         rememberFollowViewportZoomAnchor,
         resetShouldCacheIgnoreZoomDebounced: vi.fn(),
-        setState,
         translateCanvas,
       },
       "host",
@@ -124,21 +126,12 @@ describe("hostPinchGesture", () => {
     expect(result).toBe("applied");
     expect(rememberFollowViewportZoomAnchor).toHaveBeenCalled();
     expect(translateCanvas).toHaveBeenCalled();
-    expect(translateCanvas.mock.calls[0][0].zoom.value).toBe(2);
+    expect(runTranslateUpdater(translateCanvas).zoom.value).toBe(2);
   });
 
   it("applies pan when center moves", () => {
     const gesture = createGesture();
     const translateCanvas = vi.fn();
-    const setState = vi.fn((updater) => {
-      updater({
-        offsetLeft: 0,
-        offsetTop: 0,
-        scrollX: 0,
-        scrollY: 0,
-        zoom: { value: 1 },
-      } as never);
-    });
     const deps = {
       gesture,
       zoomValue: 1 as never,
@@ -146,7 +139,6 @@ describe("hostPinchGesture", () => {
       getNormalizedZoom: (zoom: number) => zoom as never,
       rememberFollowViewportZoomAnchor: vi.fn(),
       resetShouldCacheIgnoreZoomDebounced: vi.fn(),
-      setState,
       translateCanvas,
     };
 
@@ -155,8 +147,9 @@ describe("hostPinchGesture", () => {
     replaceGesturePointersFromHost(gesture, twoPointers(80, { x: 120, y: 100 }));
     applyPinchGestureStep(deps, "host");
 
-    expect(translateCanvas.mock.calls[0][0].scrollX).toBe(40);
-    expect(translateCanvas.mock.calls[0][0].scrollY).toBe(0);
+    const applied = runTranslateUpdater(translateCanvas);
+    expect(applied.scrollX).toBe(40);
+    expect(applied.scrollY).toBe(0);
   });
 
   it("resets baselines when pointers drop below two", () => {
@@ -170,7 +163,6 @@ describe("hostPinchGesture", () => {
         getNormalizedZoom: (zoom) => zoom as never,
         rememberFollowViewportZoomAnchor: vi.fn(),
         resetShouldCacheIgnoreZoomDebounced: vi.fn(),
-        setState: vi.fn(),
         translateCanvas: vi.fn(),
       },
       "host",
@@ -187,7 +179,6 @@ describe("hostPinchGesture", () => {
         getNormalizedZoom: (zoom) => zoom as never,
         rememberFollowViewportZoomAnchor: vi.fn(),
         resetShouldCacheIgnoreZoomDebounced: vi.fn(),
-        setState: vi.fn(),
         translateCanvas: vi.fn(),
       },
       "host",

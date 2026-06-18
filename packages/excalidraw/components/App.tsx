@@ -3802,10 +3802,16 @@ class App extends React.Component<AppProps, AppState> {
     isFreedrawPenMode:
       this.state.activeTool.type === "freedraw" && this.state.penMode,
     getNormalizedZoom,
-    rememberFollowViewportZoomAnchor: this.rememberFollowViewportZoomAnchor,
+    // `rememberFollowViewportZoomAnchor` is a plain (unbound) method whose
+    // default `appState` param reads `this.state`. It must be invoked with
+    // `this` === the App instance; passing the bare reference into the deps
+    // object would rebind `this` to `deps` and crash on `appState.width`.
+    // (`translateCanvas` and `resetShouldCacheIgnoreZoomDebounced` are already
+    // bound arrow/field definitions, and `getNormalizedZoom` is a module fn.)
+    rememberFollowViewportZoomAnchor: (viewportX: number, viewportY: number) =>
+      this.rememberFollowViewportZoomAnchor(viewportX, viewportY),
     resetShouldCacheIgnoreZoomDebounced:
       this.resetShouldCacheIgnoreZoomDebounced,
-    setState: this.setState,
     translateCanvas: this.translateCanvas,
   });
 

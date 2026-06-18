@@ -17,13 +17,18 @@ export type ApplyPinchGestureDeps = Readonly<{
   getNormalizedZoom: (zoom: number) => NormalizedZoomValue;
   rememberFollowViewportZoomAnchor: (viewportX: number, viewportY: number) => void;
   resetShouldCacheIgnoreZoomDebounced: () => void;
-  setState: (updater: (state: AppState) => AppState | void) => void;
-  translateCanvas: (opts: {
-    zoom: AppState["zoom"];
-    scrollX: number;
-    scrollY: number;
-    shouldCacheIgnoreZoom: boolean;
-  }) => void;
+  /**
+   * Applies a scroll/zoom update. This is the App's `translateCanvas`, a
+   * `setState` wrapper — we hand it a pure functional updater so the latest
+   * state is read and the canvas is moved in a SINGLE state update (no nested
+   * setState, which React flags as an impure update function).
+   */
+  translateCanvas: (
+    updater: (state: AppState) => Pick<
+      AppState,
+      "zoom" | "scrollX" | "scrollY" | "shouldCacheIgnoreZoom"
+    >,
+  ) => void;
 }>;
 
 export const clearPinchGestureBaselines = (gesture: Gesture) => {
@@ -84,7 +89,7 @@ const applyPinchZoomPan = (deps: ApplyPinchGestureDeps) => {
 
   deps.rememberFollowViewportZoomAnchor(center.x, center.y);
 
-  deps.setState((state) => {
+  deps.translateCanvas((state) => {
     const zoomState = getStateForZoom(
       {
         viewportX: center.x,
@@ -94,12 +99,12 @@ const applyPinchZoomPan = (deps: ApplyPinchGestureDeps) => {
       state,
     );
 
-    deps.translateCanvas({
+    return {
       zoom: zoomState.zoom,
       scrollX: zoomState.scrollX + 2 * (deltaX / nextZoom),
       scrollY: zoomState.scrollY + 2 * (deltaY / nextZoom),
       shouldCacheIgnoreZoom: true,
-    });
+    };
   });
   deps.resetShouldCacheIgnoreZoomDebounced();
 };
