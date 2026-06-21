@@ -57,6 +57,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     renderEmbeddable,
     resolveFrameTitle,
     resolveSelectionBounds,
+    singleFingerPanFirst, // [fork:singleFingerPanFirst] thread host prop into <App>
     aiEnabled,
     showDeprecatedFonts,
     renderScrollbars,
@@ -156,6 +157,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           renderEmbeddable={renderEmbeddable}
           resolveFrameTitle={resolveFrameTitle}
           resolveSelectionBounds={resolveSelectionBounds}
+          singleFingerPanFirst={singleFingerPanFirst} // [fork:singleFingerPanFirst]
           aiEnabled={aiEnabled !== false}
           showDeprecatedFonts={showDeprecatedFonts}
           renderScrollbars={renderScrollbars}
