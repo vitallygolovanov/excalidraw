@@ -334,6 +334,7 @@ import {
   resetPinchGestureState,
   type ApplyPinchGestureDeps,
 } from "../gesture/hostPinchGesture";
+import { shouldEngageSingleFingerPanFirst } from "../gesture/singleFingerPanFirst";
 import { History } from "../history";
 import { defaultLang, getLanguage, languages, setLanguage, t } from "../i18n";
 
@@ -654,6 +655,25 @@ class App extends React.Component<AppProps, AppState> {
     null;
   lastPointerMoveEvent: PointerEvent | null = null;
   lastPointerMoveCoords: { x: number; y: number } | null = null;
+  /**
+   * Fork-only `singleFingerPanFirst` deferral state. While a single finger is
+   * down on the bare canvas we hold off committing to pan-vs-select: the first
+   * meaningful move pans, a held-still finger arms native selection. See
+   * `maybeHandleSingleFingerPanFirstPointerDown`.
+   */
+  private singleFingerPanFirstState: {
+    pointerId: number;
+    startX: number;
+    startY: number;
+    downEvent: React.PointerEvent<HTMLElement>;
+    holdTimer: number;
+    onMonitorMove: (event: PointerEvent) => void;
+    onMonitorEnd: (event: PointerEvent) => void;
+  } | null = null;
+  /** True only while we explicitly start the deferred single-finger pan. */
+  private singleFingerPanFirstEngaged = false;
+  /** True only while we replay a swallowed pointerdown into the native path. */
+  private singleFingerPanFirstBypass = false;
   lastViewportPosition = { x: 0, y: 0 };
   private latestFollowViewportZoomAnchorRatios: { x: number; y: number } | null =
     null;
@@ -2761,6 +2781,7 @@ class App extends React.Component<AppProps, AppState> {
 
   public componentWillUnmount() {
     (window as any).launchQueue?.setConsumer(() => {});
+    this.clearSingleFingerPanFirstMonitors();
     this.renderer.destroy();
     this.scene.destroy();
     this.scene = new Scene();
@@ -6966,6 +6987,20 @@ class App extends React.Component<AppProps, AppState> {
 
     this.updateGestureOnPointerDown(event);
 
+    // Fork: a 2nd finger landing during a deferred single-finger pan-first
+    // gesture turns it into a pinch/pan — abort our deferral and let the native
+    // multi-touch path own it.
+    if (this.singleFingerPanFirstState && gesture.pointers.size >= 2) {
+      this.abortSingleFingerPanFirst();
+    }
+
+    // Fork: single-finger "pan-first" on the bare canvas. When this takes over
+    // it swallows the native pointerdown (deferring the pan-vs-select decision)
+    // and returns true, so nothing below runs for this event.
+    if (this.maybeHandleSingleFingerPanFirstPointerDown(event)) {
+      return;
+    }
+
     // if dragging element is freedraw and another pointerdown event occurs
     // a second finger is on the screen
     // discard the freedraw element if it is very short because it is likely
@@ -7359,6 +7394,9 @@ class App extends React.Component<AppProps, AppState> {
         (event.button === POINTER_BUTTON.WHEEL ||
           event.button === POINTER_BUTTON.SECONDARY ||
           (event.button === POINTER_BUTTON.MAIN && isHoldingSpace) ||
+          // Fork: deferred single-finger pan-first has decided this is a pan.
+          (event.button === POINTER_BUTTON.MAIN &&
+            this.singleFingerPanFirstEngaged) ||
           isHandToolActive(this.state) ||
           this.state.viewModeEnabled)
       )
@@ -7472,6 +7510,159 @@ class App extends React.Component<AppProps, AppState> {
     });
     window.addEventListener(EVENT.POINTER_UP, teardown);
     return true;
+  };
+
+  /**
+   * Fork-only single-finger "pan-first" entry point (gated by the
+   * `singleFingerPanFirst` prop). On a single-finger touch pointerdown over the
+   * bare canvas with the selection tool we swallow the native pointerdown and
+   * defer the decision:
+   *
+   * - first meaningful move  -> PAN (native wheel/space pan path, reused)
+   * - held still ~timeout    -> arm native SELECTION by replaying the
+   *                             pointerdown, so a hold-then-drag rubber-bands or
+   *                             moves the element under the finger
+   * - lifted before either   -> no-op (a short still tap pans nothing)
+   *
+   * Touches over embed editor overlays never reach the Excalidraw canvas (the
+   * overlay DOM captures them), so this is inherently "bare canvas only" without
+   * the fork needing to know about host embed selectors. Returns true when it
+   * takes over the event.
+   */
+  private maybeHandleSingleFingerPanFirstPointerDown = (
+    event: React.PointerEvent<HTMLElement>,
+  ): boolean => {
+    if (
+      !shouldEngageSingleFingerPanFirst({
+        enabled: !!this.props.singleFingerPanFirst,
+        bypass: this.singleFingerPanFirstBypass,
+        pointerType: event.pointerType,
+        isPrimary: event.isPrimary,
+        button: event.button,
+        activePointerCount: gesture.pointers.size,
+        viewModeEnabled: this.state.viewModeEnabled,
+        isHandToolActive: isHandToolActive(this.state),
+        activeToolType: this.state.activeTool.type,
+        isEditingText: !!this.state.editingTextElement,
+      })
+    ) {
+      return false;
+    }
+
+    // A stale deferral should never linger; clear before starting a fresh one.
+    this.clearSingleFingerPanFirstMonitors();
+
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const pointerId = event.pointerId;
+
+    const onMonitorMove = (moveEvent: PointerEvent) => {
+      const state = this.singleFingerPanFirstState;
+      if (!state || moveEvent.pointerId !== pointerId) {
+        return;
+      }
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      if (dx * dx + dy * dy >= DRAGGING_THRESHOLD * DRAGGING_THRESHOLD) {
+        this.commitSingleFingerPan();
+      }
+    };
+
+    const onMonitorEnd = (endEvent: PointerEvent) => {
+      if (endEvent.pointerId !== pointerId) {
+        return;
+      }
+      // Lifted/cancelled before moving or holding long enough: a brief still
+      // tap that pans nothing. Just drop the deferral.
+      this.clearSingleFingerPanFirstMonitors();
+    };
+
+    const holdTimer = window.setTimeout(() => {
+      this.commitSingleFingerSelection();
+    }, TOUCH_CTX_MENU_TIMEOUT);
+
+    this.singleFingerPanFirstState = {
+      pointerId,
+      startX,
+      startY,
+      downEvent: event,
+      holdTimer,
+      onMonitorMove,
+      onMonitorEnd,
+    };
+
+    window.addEventListener(EVENT.POINTER_MOVE, onMonitorMove, {
+      passive: true,
+    });
+    window.addEventListener(EVENT.POINTER_UP, onMonitorEnd, { capture: true });
+    window.addEventListener(EVENT.POINTER_CANCEL, onMonitorEnd, {
+      capture: true,
+    });
+
+    return true;
+  };
+
+  /** Tear down the deferral listeners + hold timer (leaves any started gesture). */
+  private clearSingleFingerPanFirstMonitors = () => {
+    const state = this.singleFingerPanFirstState;
+    if (!state) {
+      return;
+    }
+    this.singleFingerPanFirstState = null;
+    window.clearTimeout(state.holdTimer);
+    window.removeEventListener(EVENT.POINTER_MOVE, state.onMonitorMove);
+    window.removeEventListener(EVENT.POINTER_UP, state.onMonitorEnd, true);
+    window.removeEventListener(EVENT.POINTER_CANCEL, state.onMonitorEnd, true);
+  };
+
+  /** First meaningful move won: start the native pan from the original origin. */
+  private commitSingleFingerPan = () => {
+    const state = this.singleFingerPanFirstState;
+    if (!state) {
+      return;
+    }
+    const { downEvent } = state;
+    this.clearSingleFingerPanFirstMonitors();
+    // `handleCanvasPanUsingWheelOrSpaceDrag` initialises its pan origin from the
+    // passed event (the original pointerdown), so no drag delta is lost; the
+    // engaged flag opens its guard for this single-finger touch.
+    this.singleFingerPanFirstEngaged = true;
+    try {
+      this.handleCanvasPanUsingWheelOrSpaceDrag(downEvent);
+    } finally {
+      this.singleFingerPanFirstEngaged = false;
+    }
+  };
+
+  /** Held still long enough: replay the pointerdown into the native selection path. */
+  private commitSingleFingerSelection = () => {
+    const state = this.singleFingerPanFirstState;
+    if (!state) {
+      return;
+    }
+    const { downEvent } = state;
+    this.clearSingleFingerPanFirstMonitors();
+    // The finger is still down and hasn't moved: re-run the native pointerdown
+    // at the same point. `bypass` stops pan-first from swallowing it again, so
+    // the gesture continues as a normal selection (drag = rubber-band/move,
+    // continued hold = the native touch context menu).
+    this.singleFingerPanFirstBypass = true;
+    try {
+      this.handleCanvasPointerDown(downEvent);
+    } finally {
+      this.singleFingerPanFirstBypass = false;
+    }
+  };
+
+  /** A 2nd finger / teardown invalidated the deferral: end any started pan too. */
+  private abortSingleFingerPanFirst = () => {
+    if (!this.singleFingerPanFirstState) {
+      return;
+    }
+    this.clearSingleFingerPanFirstMonitors();
+    // If a pan had already started (move committed before the 2nd finger), end
+    // it cleanly so the native multi-touch pinch path starts from a clean slate.
+    this.maybeCleanupAfterMissingPointerUp(null);
   };
 
   private updateGestureOnPointerDown(

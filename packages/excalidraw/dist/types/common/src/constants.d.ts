@@ -59,6 +59,7 @@ export declare enum EVENT {
     POINTER_MOVE = "pointermove",
     POINTER_DOWN = "pointerdown",
     POINTER_UP = "pointerup",
+    POINTER_CANCEL = "pointercancel",
     STATE_CHANGE = "statechange",
     WHEEL = "wheel",
     TOUCH_START = "touchstart",

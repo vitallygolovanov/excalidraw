@@ -721,6 +721,18 @@ export interface ExcalidrawProps {
   /** When true, Page Up/Down no longer pan the canvas (host handles navigation). */
   disableCanvasPageScroll?: boolean;
   /**
+   * Fork-only. Touch-device single-finger "pan-first" behaviour.
+   *
+   * When true, a single-finger touch on the bare canvas with the selection tool
+   * pans the canvas instead of immediately starting a rubber-band/selection.
+   * Holding the finger still for `TOUCH_CTX_MENU_TIMEOUT` arms the native
+   * selection path instead, so a hold-then-drag rubber-bands or moves the
+   * element under the finger. Only affects `pointerType === "touch"`; mouse/pen
+   * and multi-touch gestures are untouched. See
+   * `gesture/singleFingerPanFirst.ts` for the pure gating decision.
+   */
+  singleFingerPanFirst?: boolean;
+  /**
    * Fork-only. Called at the very top of the internal drop handler.
    * Return `true` to suppress Excalidraw's built-in file/content insert for this drop.
    * Receives the scene coordinates of the drop point and the drag event.
