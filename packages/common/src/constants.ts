@@ -87,6 +87,8 @@ export enum EVENT {
   POINTER_MOVE = "pointermove",
   POINTER_DOWN = "pointerdown",
   POINTER_UP = "pointerup",
+  // [fork:singleFingerPanFirst] used by the pan-first deferral monitors; upstream
+  // may already add an equivalent — reconcile rather than duplicate on upgrade.
   POINTER_CANCEL = "pointercancel",
   STATE_CHANGE = "statechange",
   WHEEL = "wheel",

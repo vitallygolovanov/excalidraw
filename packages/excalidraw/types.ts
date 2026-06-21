@@ -721,7 +721,7 @@ export interface ExcalidrawProps {
   /** When true, Page Up/Down no longer pan the canvas (host handles navigation). */
   disableCanvasPageScroll?: boolean;
   /**
-   * Fork-only. Touch-device single-finger "pan-first" behaviour.
+   * [fork:singleFingerPanFirst] Fork-only. Touch-device single-finger "pan-first" behaviour.
    *
    * When true, a single-finger touch on the bare canvas with the selection tool
    * pans the canvas instead of immediately starting a rubber-band/selection.

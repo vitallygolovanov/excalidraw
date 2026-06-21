@@ -1,3 +1,4 @@
+// [fork:singleFingerPanFirst] Fork-added test (no upstream equivalent).
 import { describe, expect, it } from "vitest";
 
 import { shouldEngageSingleFingerPanFirst } from "../gesture/singleFingerPanFirst";

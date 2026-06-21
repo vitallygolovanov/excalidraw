@@ -88,6 +88,17 @@ declare class App extends React.Component<AppProps, AppState> {
         x: number;
         y: number;
     } | null;
+    /**
+     * Fork-only `singleFingerPanFirst` deferral state. While a single finger is
+     * down on the bare canvas we hold off committing to pan-vs-select: the first
+     * meaningful move pans, a held-still finger arms native selection. See
+     * `maybeHandleSingleFingerPanFirstPointerDown`.
+     */
+    private singleFingerPanFirstState;
+    /** True only while we explicitly start the deferred single-finger pan. */
+    private singleFingerPanFirstEngaged;
+    /** True only while we replay a swallowed pointerdown into the native path. */
+    private singleFingerPanFirstBypass;
     lastViewportPosition: {
         x: number;
         y: number;
@@ -490,6 +501,32 @@ declare class App extends React.Component<AppProps, AppState> {
      */
     private maybeCleanupAfterMissingPointerUp;
     handleCanvasPanUsingWheelOrSpaceDrag: (event: React.PointerEvent<HTMLElement> | MouseEvent) => boolean;
+    /**
+     * Fork-only single-finger "pan-first" entry point (gated by the
+     * `singleFingerPanFirst` prop). On a single-finger touch pointerdown over the
+     * bare canvas with the selection tool we swallow the native pointerdown and
+     * defer the decision:
+     *
+     * - first meaningful move  -> PAN (native wheel/space pan path, reused)
+     * - held still ~timeout    -> arm native SELECTION by replaying the
+     *                             pointerdown, so a hold-then-drag rubber-bands or
+     *                             moves the element under the finger
+     * - lifted before either   -> no-op (a short still tap pans nothing)
+     *
+     * Touches over embed editor overlays never reach the Excalidraw canvas (the
+     * overlay DOM captures them), so this is inherently "bare canvas only" without
+     * the fork needing to know about host embed selectors. Returns true when it
+     * takes over the event.
+     */
+    private maybeHandleSingleFingerPanFirstPointerDown;
+    /** Tear down the deferral listeners + hold timer (leaves any started gesture). */
+    private clearSingleFingerPanFirstMonitors;
+    /** First meaningful move won: start the native pan from the original origin. */
+    private commitSingleFingerPan;
+    /** Held still long enough: replay the pointerdown into the native selection path. */
+    private commitSingleFingerSelection;
+    /** A 2nd finger / teardown invalidated the deferral: end any started pan too. */
+    private abortSingleFingerPanFirst;
     private updateGestureOnPointerDown;
     private initialPointerDownState;
     private handleDraggingScrollBar;

@@ -334,6 +334,7 @@ import {
   resetPinchGestureState,
   type ApplyPinchGestureDeps,
 } from "../gesture/hostPinchGesture";
+// [fork:singleFingerPanFirst] new standalone module — see fork README re-apply checklist
 import { shouldEngageSingleFingerPanFirst } from "../gesture/singleFingerPanFirst";
 import { History } from "../history";
 import { defaultLang, getLanguage, languages, setLanguage, t } from "../i18n";
@@ -655,6 +656,7 @@ class App extends React.Component<AppProps, AppState> {
     null;
   lastPointerMoveEvent: PointerEvent | null = null;
   lastPointerMoveCoords: { x: number; y: number } | null = null;
+  // [fork:singleFingerPanFirst] instance state (3 fields) — drop as a block on upgrade.
   /**
    * Fork-only `singleFingerPanFirst` deferral state. While a single finger is
    * down on the bare canvas we hold off committing to pan-vs-select: the first
@@ -2781,7 +2783,7 @@ class App extends React.Component<AppProps, AppState> {
 
   public componentWillUnmount() {
     (window as any).launchQueue?.setConsumer(() => {});
-    this.clearSingleFingerPanFirstMonitors();
+    this.clearSingleFingerPanFirstMonitors(); // [fork:singleFingerPanFirst]
     this.renderer.destroy();
     this.scene.destroy();
     this.scene = new Scene();
@@ -6987,19 +6989,23 @@ class App extends React.Component<AppProps, AppState> {
 
     this.updateGestureOnPointerDown(event);
 
-    // Fork: a 2nd finger landing during a deferred single-finger pan-first
-    // gesture turns it into a pinch/pan — abort our deferral and let the native
+    // [fork:singleFingerPanFirst] START — two hooks in handleCanvasPointerDown,
+    // placed right after updateGestureOnPointerDown and before any native
+    // selection/draw branch. Drop both `if` blocks to revert.
+    // A 2nd finger landing during a deferred single-finger pan-first gesture
+    // turns it into a pinch/pan — abort our deferral and let the native
     // multi-touch path own it.
     if (this.singleFingerPanFirstState && gesture.pointers.size >= 2) {
       this.abortSingleFingerPanFirst();
     }
 
-    // Fork: single-finger "pan-first" on the bare canvas. When this takes over
-    // it swallows the native pointerdown (deferring the pan-vs-select decision)
-    // and returns true, so nothing below runs for this event.
+    // Single-finger "pan-first" on the bare canvas. When this takes over it
+    // swallows the native pointerdown (deferring the pan-vs-select decision) and
+    // returns true, so nothing below runs for this event.
     if (this.maybeHandleSingleFingerPanFirstPointerDown(event)) {
       return;
     }
+    // [fork:singleFingerPanFirst] END
 
     // if dragging element is freedraw and another pointerdown event occurs
     // a second finger is on the screen
@@ -7394,7 +7400,8 @@ class App extends React.Component<AppProps, AppState> {
         (event.button === POINTER_BUTTON.WHEEL ||
           event.button === POINTER_BUTTON.SECONDARY ||
           (event.button === POINTER_BUTTON.MAIN && isHoldingSpace) ||
-          // Fork: deferred single-finger pan-first has decided this is a pan.
+          // [fork:singleFingerPanFirst] deferred pan-first has decided this is a
+          // pan (drop this one OR-clause to revert).
           (event.button === POINTER_BUTTON.MAIN &&
             this.singleFingerPanFirstEngaged) ||
           isHandToolActive(this.state) ||
@@ -7511,6 +7518,13 @@ class App extends React.Component<AppProps, AppState> {
     window.addEventListener(EVENT.POINTER_UP, teardown);
     return true;
   };
+
+  // ===========================================================================
+  // [fork:singleFingerPanFirst] START — self-contained method block (5 methods).
+  // No upstream code calls these; they are only reached via the two hooks in
+  // handleCanvasPointerDown, the guard clause in handleCanvasPanUsingWheelOrSpace
+  // Drag, and the componentWillUnmount call. Delete this whole block to revert.
+  // ===========================================================================
 
   /**
    * Fork-only single-finger "pan-first" entry point (gated by the
@@ -7664,6 +7678,9 @@ class App extends React.Component<AppProps, AppState> {
     // it cleanly so the native multi-touch pinch path starts from a clean slate.
     this.maybeCleanupAfterMissingPointerUp(null);
   };
+
+  // [fork:singleFingerPanFirst] END
+  // ===========================================================================
 
   private updateGestureOnPointerDown(
     event: React.PointerEvent<HTMLElement>,

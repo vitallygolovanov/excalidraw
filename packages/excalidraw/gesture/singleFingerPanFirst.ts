@@ -1,4 +1,6 @@
 /**
+ * [fork:singleFingerPanFirst] Fork-added module (no upstream equivalent).
+ *
  * Pure decision helper for the fork-only `singleFingerPanFirst` prop.
  *
  * The host (xmp.pro Blackboard) wants a single finger on the bare canvas to PAN
