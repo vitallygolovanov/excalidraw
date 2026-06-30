@@ -494,6 +494,7 @@ export interface ExcalidrawProps {
     reservedHorizontalWidth?: number;
     langCode?: Language["code"];
     viewModeEnabled?: boolean;
+    viewModeAllowSelection?: boolean;
     zenModeEnabled?: boolean;
     gridModeEnabled?: boolean;
     objectsSnapModeEnabled?: boolean;

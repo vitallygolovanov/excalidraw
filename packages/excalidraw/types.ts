@@ -652,6 +652,12 @@ export interface ExcalidrawProps {
   reservedHorizontalWidth?: number;
   langCode?: Language["code"];
   viewModeEnabled?: boolean;
+  // [fork:viewModeAllowSelection] START — when set alongside `viewModeEnabled`, a plain main-button
+  // click on an element selects it (without enabling any edit/drag), so host overlays driven by
+  // `selectedElementIds` (e.g. read-only history-preview navigation menus) keep working. Default off =
+  // upstream behavior. Delete this prop + its `[fork:viewModeAllowSelection]` uses in App.tsx to revert.
+  viewModeAllowSelection?: boolean;
+  // [fork:viewModeAllowSelection] END
   zenModeEnabled?: boolean;
   gridModeEnabled?: boolean;
   objectsSnapModeEnabled?: boolean;

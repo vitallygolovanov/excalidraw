@@ -7082,6 +7082,47 @@ class App extends React.Component<AppProps, AppState> {
 
     this.lastPointerDownEvent = event;
 
+    // [fork:viewModeAllowSelection] START — in read-only view mode with selection allowed, a plain
+    // main-button click selects the element under the pointer (so host overlays keyed on
+    // `selectedElementIds` keep working) WITHOUT entering any edit/drag/pan path: set the selection
+    // and return before the pan guard below. An empty-canvas click clears the selection and falls
+    // through so panning still works. Mouse/pen only — touch keeps its own view-mode navigation path.
+    // No window pointer-move listener is ever registered in view mode, so the element can only be
+    // selected, never moved. Delete this whole block to revert.
+    if (
+      this.props.viewModeAllowSelection &&
+      this.state.viewModeEnabled &&
+      event.button === POINTER_BUTTON.MAIN &&
+      event.pointerType !== "touch" &&
+      !isHoldingSpace
+    ) {
+      const scenePointer = viewportCoordsToSceneCoords(
+        { clientX: event.clientX, clientY: event.clientY },
+        this.state,
+      );
+      const hitElement = this.getElementAtPosition(
+        scenePointer.x,
+        scenePointer.y,
+        { includeLockedElements: true },
+      );
+      if (hitElement) {
+        this.setState({
+          selectedElementIds: makeNextSelectedElementIds(
+            { [hitElement.id]: true },
+            this.state,
+          ),
+        });
+        return;
+      }
+      if (Object.keys(this.state.selectedElementIds).length > 0) {
+        this.setState({
+          selectedElementIds: makeNextSelectedElementIds({}, this.state),
+        });
+      }
+      // fall through → pan
+    }
+    // [fork:viewModeAllowSelection] END
+
     // we must exit before we set `cursorButton` state and `savePointer`
     // else it will send pointer state & laser pointer events in collab when
     // panning
@@ -7341,7 +7382,11 @@ class App extends React.Component<AppProps, AppState> {
       } else {
         this.redirectToLink(event, this.device.isTouchScreen);
       }
-    } else if (this.state.viewModeEnabled) {
+      // [fork:viewModeAllowSelection] START — keep the selection set on pointer-down (Seam 1) instead
+      // of wiping it on every view-mode pointer-up, so host overlays keyed on `selectedElementIds`
+      // survive the click. Default (prop off) = upstream behavior. Delete the `&& !…` to revert.
+    } else if (this.state.viewModeEnabled && !this.props.viewModeAllowSelection) {
+      // [fork:viewModeAllowSelection] END
       this.setState({
         activeEmbeddable: null,
         selectedElementIds: {},

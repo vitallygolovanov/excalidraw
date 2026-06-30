@@ -32,6 +32,9 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     reservedHorizontalWidth,
     langCode = defaultLang.code,
     viewModeEnabled,
+    // [fork:viewModeAllowSelection] this fork passes every prop to <App> explicitly (no {...rest}
+    // spread), so a prop only added to types.ts + read in App arrives undefined unless threaded here.
+    viewModeAllowSelection,
     zenModeEnabled,
     gridModeEnabled,
     libraryReturnUrl,
@@ -134,6 +137,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           reservedHorizontalWidth={reservedHorizontalWidth}
           langCode={langCode}
           viewModeEnabled={viewModeEnabled}
+          viewModeAllowSelection={viewModeAllowSelection}
           zenModeEnabled={zenModeEnabled}
           gridModeEnabled={gridModeEnabled}
           libraryReturnUrl={libraryReturnUrl}
