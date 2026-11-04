@@ -1004,7 +1004,20 @@ export interface ExcalidrawImperativeAPI {
     pointers: readonly HostPinchPointer[],
   ) => HostPinchGestureResult;
   resetPinchGesture: () => void;
+  // [fork:insert-elements] START — host-driven insert through the native paste pipeline
+  // (new ids/groupIds/bindings, bound-text redraw, frame adoption, one undo entry).
+  // Returns the inserted elements, or `null` in view mode.
+  insertElements: App["onInsertElements"];
+  // [fork:insert-elements] END
 }
+
+// [fork:insert-elements] START
+export type InsertElementsPosition =
+  | { clientX: number; clientY: number }
+  | { sceneX: number; sceneY: number }
+  | "cursor"
+  | "center";
+// [fork:insert-elements] END
 
 export type Device = Readonly<{
   viewport: {

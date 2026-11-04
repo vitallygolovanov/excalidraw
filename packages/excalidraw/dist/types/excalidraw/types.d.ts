@@ -744,7 +744,15 @@ export interface ExcalidrawImperativeAPI {
     onUserFollow: (callback: (payload: OnUserFollowedPayload) => void) => UnsubscribeCallback;
     applyPinchGesture: (pointers: readonly HostPinchPointer[]) => HostPinchGestureResult;
     resetPinchGesture: () => void;
+    insertElements: App["onInsertElements"];
 }
+export type InsertElementsPosition = {
+    clientX: number;
+    clientY: number;
+} | {
+    sceneX: number;
+    sceneY: number;
+} | "cursor" | "center";
 export type Device = Readonly<{
     viewport: {
         isMobile: boolean;

@@ -477,6 +477,7 @@ import type {
   NullableGridSize,
   Offsets,
   DataURL,
+  InsertElementsPosition,
 } from "../types";
 import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { Action, ActionResult } from "../actions/types";
@@ -920,6 +921,7 @@ class App extends React.Component<AppProps, AppState> {
         onUserFollow: (cb) => this.onUserFollowEmitter.on(cb),
         applyPinchGesture: this.applyPinchGesture,
         resetPinchGesture: this.resetPinchGesture,
+        insertElements: this.onInsertElements, // [fork:insert-elements]
       } as const;
       if (typeof excalidrawAPI === "function") {
         excalidrawAPI(api);
@@ -2081,13 +2083,29 @@ class App extends React.Component<AppProps, AppState> {
     return this.scene.getNonDeletedElements();
   };
 
-  public onInsertElements = (elements: readonly ExcalidrawElement[]) => {
-    this.addElementsFromPasteOrLibrary({
+  // [fork:insert-elements] START — positioned, view-mode-guarded, returns the inserted
+  // elements; also exposed as `ExcalidrawImperativeAPI.insertElements`. Upstream callers
+  // (LibraryMenu, PasteChartDialog) pass no opts and keep the "center"/no-files default.
+  public onInsertElements = (
+    elements: readonly ExcalidrawElement[],
+    opts?: {
+      position?: InsertElementsPosition;
+      files?: BinaryFiles | null;
+    },
+  ): readonly ExcalidrawElement[] | null => {
+    if (this.state.viewModeEnabled) {
+      return null;
+    }
+    if (!elements.length) {
+      return [];
+    }
+    return this.addElementsFromPasteOrLibrary({
       elements,
-      position: "center",
-      files: null,
+      position: opts?.position ?? "center",
+      files: opts?.files ?? null,
     });
   };
+  // [fork:insert-elements] END
 
   public onExportImage = async (
     type: keyof typeof EXPORT_IMAGE_TYPES,
@@ -3449,33 +3467,40 @@ class App extends React.Component<AppProps, AppState> {
   addElementsFromPasteOrLibrary = (opts: {
     elements: readonly ExcalidrawElement[];
     files: BinaryFiles | null;
-    position: { clientX: number; clientY: number } | "cursor" | "center";
+    position: InsertElementsPosition; // [fork:insert-elements] widened with the scene variant
     retainSeed?: boolean;
     fitToContent?: boolean;
-  }) => {
+  }): readonly ExcalidrawElement[] => {
     const elements = restoreElements(opts.elements, null, undefined);
     const [minX, minY, maxX, maxY] = getCommonBounds(elements);
 
     const elementsCenterX = distance(minX, maxX) / 2;
     const elementsCenterY = distance(minY, maxY) / 2;
 
-    const clientX =
-      typeof opts.position === "object"
-        ? opts.position.clientX
-        : opts.position === "cursor"
-        ? this.lastViewportPosition.x
-        : this.state.width / 2 + this.state.offsetLeft;
-    const clientY =
-      typeof opts.position === "object"
-        ? opts.position.clientY
-        : opts.position === "cursor"
-        ? this.lastViewportPosition.y
-        : this.state.height / 2 + this.state.offsetTop;
+    // [fork:insert-elements] START — a scene-coordinate position skips the viewport conversion.
+    const position = opts.position;
+    let x: number;
+    let y: number;
+    if (typeof position === "object" && "sceneX" in position) {
+      x = position.sceneX;
+      y = position.sceneY;
+    } else {
+      const clientX =
+        typeof position === "object"
+          ? position.clientX
+          : position === "cursor"
+          ? this.lastViewportPosition.x
+          : this.state.width / 2 + this.state.offsetLeft;
+      const clientY =
+        typeof position === "object"
+          ? position.clientY
+          : position === "cursor"
+          ? this.lastViewportPosition.y
+          : this.state.height / 2 + this.state.offsetTop;
 
-    const { x, y } = viewportCoordsToSceneCoords(
-      { clientX, clientY },
-      this.state,
-    );
+      ({ x, y } = viewportCoordsToSceneCoords({ clientX, clientY }, this.state));
+    }
+    // [fork:insert-elements] END
 
     const dx = x - elementsCenterX;
     const dy = y - elementsCenterY;
@@ -3593,6 +3618,8 @@ class App extends React.Component<AppProps, AppState> {
         canvasOffsets: this.getEditorUIOffsets(),
       });
     }
+
+    return duplicatedElements; // [fork:insert-elements]
   };
 
   // TODO rewrite this to paste both text & images at the same time if

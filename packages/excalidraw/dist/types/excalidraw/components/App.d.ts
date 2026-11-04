@@ -13,7 +13,7 @@ import { LassoTrail } from "../lasso";
 import { EraserTrail } from "../eraser";
 import type { ExportedElements } from "../data";
 import type { FileSystemHandle } from "../data/filesystem";
-import type { AppClassProperties, AppProps, AppState, ExcalidrawImperativeAPI, BinaryFiles, HostPinchGestureResult, HostPinchPointer, LibraryItems, SceneData, Device, FrameNameBoundsCache, SidebarName, SidebarTabName, ToolType, OnUserFollowedPayload, GenerateDiagramToCode, NullableGridSize, Offsets } from "../types";
+import type { AppClassProperties, AppProps, AppState, ExcalidrawImperativeAPI, BinaryFiles, HostPinchGestureResult, HostPinchPointer, LibraryItems, SceneData, Device, FrameNameBoundsCache, SidebarName, SidebarTabName, ToolType, OnUserFollowedPayload, GenerateDiagramToCode, NullableGridSize, Offsets, InsertElementsPosition } from "../types";
 import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { ActionResult } from "../actions/types";
 export declare const ExcalidrawContainerContext: React.Context<{
@@ -289,7 +289,10 @@ declare class App extends React.Component<AppProps, AppState> {
     getSceneElementsIncludingDeleted: () => readonly import("@excalidraw/element/types").OrderedExcalidrawElement[];
     getSceneElementsMapIncludingDeleted: () => Map<string, Ordered<ExcalidrawElement>> & import("@excalidraw/common/utility-types").MakeBrand<"SceneElementsMap">;
     getSceneElements: () => readonly Ordered<NonDeletedExcalidrawElement>[];
-    onInsertElements: (elements: readonly ExcalidrawElement[]) => void;
+    onInsertElements: (elements: readonly ExcalidrawElement[], opts?: {
+        position?: InsertElementsPosition;
+        files?: BinaryFiles | null;
+    }) => readonly ExcalidrawElement[] | null;
     onExportImage: (type: keyof typeof EXPORT_IMAGE_TYPES, elements: ExportedElements, opts: {
         exportingFrame: ExcalidrawFrameLikeElement | null;
     }) => Promise<void>;
@@ -341,13 +344,10 @@ declare class App extends React.Component<AppProps, AppState> {
     addElementsFromPasteOrLibrary: (opts: {
         elements: readonly ExcalidrawElement[];
         files: BinaryFiles | null;
-        position: {
-            clientX: number;
-            clientY: number;
-        } | "cursor" | "center";
+        position: InsertElementsPosition;
         retainSeed?: boolean;
         fitToContent?: boolean;
-    }) => void;
+    }) => readonly ExcalidrawElement[];
     private addElementsFromMixedContentPaste;
     private addTextFromPaste;
     setAppState: React.Component<any, AppState>["setState"];
