@@ -72,7 +72,7 @@ import {
   unmountComponent,
 } from "./test-utils";
 
-import type { AppState } from "../types";
+import type { AppState, ExcalidrawImperativeAPI } from "../types";
 
 const { h } = window;
 
@@ -5194,5 +5194,126 @@ describe("history", () => {
         ]);
       });
     });
+  });
+});
+
+// [fork:skip-selection-only-history] [fork:history-api]
+describe("history (fork): recordSelectionHistory={false} and the host history API", () => {
+  it("keeps selection-only clicks out of the stack and the redo stack intact", async () => {
+    await render(
+      <Excalidraw handleKeyboardGlobally={true} recordSelectionHistory={false} />,
+    );
+
+    const rect1 = UI.createElement("rectangle", { x: 10 });
+    UI.createElement("rectangle", { x: 20 });
+    expect(API.getUndoStack().length).toBe(2);
+
+    Keyboard.undo();
+    expect(API.getUndoStack().length).toBe(1);
+    expect(API.getRedoStack().length).toBe(1);
+
+    mouse.clickAt(-10, -10);
+    expect(API.getSelectedElements().length).toBe(0);
+    expect(API.getUndoStack().length).toBe(1);
+    expect(API.getRedoStack().length).toBe(1);
+
+    Keyboard.undo();
+    expect(h.elements).toEqual([
+      expect.objectContaining({ id: rect1.id, isDeleted: true }),
+      expect.anything(),
+    ]);
+  });
+
+  it("still records app-state-only document edits (canvas background)", async () => {
+    await render(
+      <Excalidraw handleKeyboardGlobally={true} recordSelectionHistory={false} />,
+    );
+    const before = h.state.viewBackgroundColor;
+
+    API.updateScene({
+      appState: { viewBackgroundColor: "#ff0000" },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    expect(API.getUndoStack().length).toBe(1);
+
+    Keyboard.undo();
+    expect(h.state.viewBackgroundColor).toBe(before);
+  });
+
+  it("history.undo() / redo() run the actions and report the touched ids", async () => {
+    let api: ExcalidrawImperativeAPI | null = null;
+    await render(
+      <Excalidraw
+        handleKeyboardGlobally={true}
+        excalidrawAPI={(instance) => {
+          api = instance;
+        }}
+      />,
+    );
+    const events: { type: string; elementIds: readonly string[] }[] = [];
+    api!.history.onAction((event) => events.push(event));
+
+    const rect = UI.createElement("rectangle", { x: 10 });
+    act(() => api!.history.undo());
+    expect(h.elements).toEqual([expect.objectContaining({ id: rect.id, isDeleted: true })]);
+    act(() => api!.history.redo());
+    expect(h.elements).toEqual([expect.objectContaining({ id: rect.id, isDeleted: false })]);
+    expect(events).toEqual([
+      expect.objectContaining({ type: "undo", elementIds: [rect.id] }),
+      expect.objectContaining({ type: "redo", elementIds: [rect.id] }),
+    ]);
+  });
+
+  it("history.undo() is ignored in view mode, like the keyboard path", async () => {
+    let api: ExcalidrawImperativeAPI | null = null;
+    await render(
+      <Excalidraw
+        handleKeyboardGlobally={true}
+        excalidrawAPI={(instance) => {
+          api = instance;
+        }}
+      />,
+    );
+    const rect = UI.createElement("rectangle", { x: 10 });
+    API.setAppState({ viewModeEnabled: true });
+
+    act(() => api!.history.undo());
+    expect(h.elements).toEqual([expect.objectContaining({ id: rect.id, isDeleted: false })]);
+  });
+});
+
+// [fork:appstate-only-capture]
+describe("history (fork): appState-only updateScene captures", () => {
+  it("NEVER leaves the store snapshot's elements alone", async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    const rect = UI.createElement("rectangle", { x: 10 });
+
+    API.updateScene({
+      appState: { selectedElementIds: {} },
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+    await act(async () => {});
+
+    const snapshotRect = h.app.store.snapshot.elements.get(rect.id);
+    expect(snapshotRect?.isDeleted).toBe(false);
+    expect(snapshotRect?.version).toBe(h.elements[0].version);
+  });
+
+  it("IMMEDIATELY records only the appState change, so its undo keeps the elements", async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    const rect = UI.createElement("rectangle", { x: 10 });
+    const before = h.state.viewBackgroundColor;
+
+    API.updateScene({
+      appState: { viewBackgroundColor: "#ff0000" },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    await act(async () => {});
+    const entry = API.getUndoStack().at(-1)!;
+    expect(entry.elements.isEmpty()).toBe(true);
+
+    Keyboard.undo();
+    expect(h.state.viewBackgroundColor).toBe(before);
+    expect(h.elements).toEqual([expect.objectContaining({ id: rect.id, isDeleted: false })]);
   });
 });

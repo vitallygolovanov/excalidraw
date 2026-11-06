@@ -879,7 +879,10 @@ class App extends React.Component<AppProps, AppState> {
     this.visibleElements = [];
 
     this.store = new Store(this);
-    this.history = new History(this.store);
+    // [fork:skip-selection-only-history]
+    this.history = new History(this.store, {
+      recordSelectionChanges: this.props.recordSelectionHistory !== false,
+    });
 
     if (excalidrawAPI) {
       const api: ExcalidrawImperativeAPI = {
@@ -894,6 +897,26 @@ class App extends React.Component<AppProps, AppState> {
           this.getSceneElementsMapIncludingDeleted,
         history: {
           clear: this.resetHistory,
+          // [fork:history-api] host-driven undo/redo (keyboard routing when focus is outside the
+          // editor) and the applied-change notification used to reveal off-screen undo targets.
+          // `executeAction` skips the view-mode gate the keyboard path applies, so it is repeated here.
+          undo: () => {
+            if (!this.state.viewModeEnabled) {
+              this.actionManager.executeAction(
+                this.actionManager.actions.undo,
+                "api",
+              );
+            }
+          },
+          redo: () => {
+            if (!this.state.viewModeEnabled) {
+              this.actionManager.executeAction(
+                this.actionManager.actions.redo,
+                "api",
+              );
+            }
+          },
+          onAction: (cb) => this.history.onHistoryActionEmitter.on(cb),
         },
         scrollToContent: this.scrollToContent,
         getSceneElements: this.getSceneElements,
@@ -936,7 +959,10 @@ class App extends React.Component<AppProps, AppState> {
     };
 
     this.fonts = new Fonts(this.scene);
-    this.history = new History(this.store);
+    // [fork:skip-selection-only-history]
+    this.history = new History(this.store, {
+      recordSelectionChanges: this.props.recordSelectionHistory !== false,
+    });
 
     this.actionManager.registerAll(actions);
     this.actionManager.registerAction(createUndoAction(this.history));
@@ -4595,7 +4621,12 @@ class App extends React.Component<AppProps, AppState> {
 
         this.store.scheduleMicroAction({
           action: captureUpdate,
-          elements: elements ?? [],
+          // [fork:appstate-only-capture] upstream passes `elements ?? []`: an appState-only update
+          // (a selection write) then reads as "every element was removed". With NEVER the snapshot
+          // takes that state (all elements deleted, versions bumped, so the live elements no longer
+          // win); the next captured edit records the whole board as re-added, and undoing it deletes
+          // the board. The store already treats `undefined` as "elements unchanged".
+          elements: elements ?? undefined,
           appState: observedAppState,
         });
       }

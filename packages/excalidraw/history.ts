@@ -10,7 +10,28 @@ import type { StoreSnapshot, Store } from "@excalidraw/element";
 
 import type { SceneElementsMap } from "@excalidraw/element/types";
 
-import type { AppState } from "./types";
+import type { AppState, ObservedElementsAppState } from "./types";
+
+// [fork:skip-selection-only-history] observed appState keys that only describe what is selected or
+// being edited. A Record over `ObservedElementsAppState` makes an upstream-added key a type error here.
+// `viewBackgroundColor` and `name` (ObservedStandaloneAppState) are document edits and stay recorded.
+const SELECTION_ONLY_APP_STATE_KEYS: Record<keyof ObservedElementsAppState, true> = {
+  selectedElementIds: true,
+  selectedGroupIds: true,
+  editingGroupId: true,
+  selectedLinearElementId: true,
+  editingLinearElementId: true,
+  croppingElementId: true,
+  activeLockedId: true,
+  lockedMultiSelections: true,
+};
+
+const isSelectionOnlyDelta = (delta: HistoryDelta) =>
+  delta.elements.isEmpty() &&
+  Object.keys({
+    ...delta.appState.delta.deleted,
+    ...delta.appState.delta.inserted,
+  }).every((key) => Object.hasOwn(SELECTION_ONLY_APP_STATE_KEYS, key));
 
 export class HistoryDelta extends StoreDelta {
   /**
@@ -87,10 +108,24 @@ export class HistoryChangedEvent {
   ) {}
 }
 
+export type HistoryActionType = "undo" | "redo";
+
+// [fork:history-action-event] emitted after an undo/redo was applied, with the ids of every element
+// the applied entries touched, so the host can bring an off-screen change into view.
+export class HistoryActionEvent {
+  constructor(
+    public readonly type: HistoryActionType,
+    public readonly elementIds: readonly string[],
+  ) {}
+}
+
 export class History {
   public readonly onHistoryChangedEmitter = new Emitter<
     [HistoryChangedEvent]
   >();
+
+  // [fork:history-action-event]
+  public readonly onHistoryActionEmitter = new Emitter<[HistoryActionEvent]>();
 
   public readonly undoStack: HistoryDelta[] = [];
   public readonly redoStack: HistoryDelta[] = [];
@@ -103,7 +138,11 @@ export class History {
     return this.redoStack.length === 0;
   }
 
-  constructor(private readonly store: Store) {}
+  // [fork:skip-selection-only-history] opt-in (`recordSelectionHistory={false}`); upstream default.
+  constructor(
+    private readonly store: Store,
+    private readonly options: { recordSelectionChanges?: boolean } = {},
+  ) {}
 
   public clear() {
     this.undoStack.length = 0;
@@ -122,6 +161,17 @@ export class History {
     // construct history entry, so once it's emitted, it's not recorded again
     const historyDelta = HistoryDelta.inverse(delta);
 
+    // [fork:skip-selection-only-history] when opted in, a selection change is not an undo step:
+    // upstream records it, so a plain click makes the next Ctrl+Z look like a no-op. Element entries
+    // still carry their appState delta, so undoing an edit restores its selection as before;
+    // appState-only document edits (canvas background, name) stay undoable.
+    if (
+      this.options.recordSelectionChanges === false &&
+      isSelectionOnlyDelta(historyDelta)
+    ) {
+      return;
+    }
+
     this.undoStack.push(historyDelta);
 
     if (!historyDelta.elements.isEmpty()) {
@@ -138,6 +188,7 @@ export class History {
 
   public undo(elements: SceneElementsMap, appState: AppState) {
     return this.perform(
+      "undo",
       elements,
       appState,
       () => History.pop(this.undoStack),
@@ -147,6 +198,7 @@ export class History {
 
   public redo(elements: SceneElementsMap, appState: AppState) {
     return this.perform(
+      "redo",
       elements,
       appState,
       () => History.pop(this.redoStack),
@@ -155,11 +207,15 @@ export class History {
   }
 
   private perform(
+    type: HistoryActionType,
     elements: SceneElementsMap,
     appState: AppState,
     pop: () => HistoryDelta | null,
     push: (entry: HistoryDelta) => void,
   ): [SceneElementsMap, AppState] | void {
+    // [fork:history-action-event]
+    const touchedElementIds = new Set<string>();
+
     try {
       let historyDelta = pop();
 
@@ -178,6 +234,16 @@ export class History {
       // iterate through the history entries in case ;they result in no visible changes
       while (historyDelta) {
         try {
+          for (const id of Object.keys(historyDelta.elements.added)) {
+            touchedElementIds.add(id);
+          }
+          for (const id of Object.keys(historyDelta.elements.removed)) {
+            touchedElementIds.add(id);
+          }
+          for (const id of Object.keys(historyDelta.elements.updated)) {
+            touchedElementIds.add(id);
+          }
+
           [nextElements, nextAppState, containsVisibleChange] =
             historyDelta.applyTo(nextElements, nextAppState, prevSnapshot);
 
@@ -225,6 +291,13 @@ export class History {
       this.onHistoryChangedEmitter.trigger(
         new HistoryChangedEvent(this.isUndoStackEmpty, this.isRedoStackEmpty),
       );
+
+      // [fork:history-action-event]
+      if (touchedElementIds.size > 0) {
+        this.onHistoryActionEmitter.trigger(
+          new HistoryActionEvent(type, Array.from(touchedElementIds)),
+        );
+      }
     }
   }
 

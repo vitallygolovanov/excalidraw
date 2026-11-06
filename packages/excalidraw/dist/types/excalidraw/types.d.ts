@@ -9,6 +9,7 @@ import type { Action } from "./actions/types";
 import type { Spreadsheet } from "./charts";
 import type { ClipboardData } from "./clipboard";
 import type App from "./components/App";
+import type { HistoryActionEvent } from "./history";
 import type Library from "./data/library";
 import type { FileSystemHandle } from "./data/filesystem";
 import type { ContextMenuItems } from "./components/ContextMenu";
@@ -505,6 +506,11 @@ export interface ExcalidrawProps {
     UIOptions?: Partial<UIOptions>;
     detectScroll?: boolean;
     handleKeyboardGlobally?: boolean;
+    /**
+     * [fork:skip-selection-only-history] `false` keeps selection-only changes (clicks) out of the undo
+     * stack. Read once at mount. Defaults to upstream behaviour (`true`).
+     */
+    recordSelectionHistory?: boolean;
     onLibraryChange?: (libraryItems: LibraryItems) => void | Promise<any>;
     autoFocus?: boolean;
     generateIdForFile?: (file: File) => string | Promise<string>;
@@ -710,6 +716,9 @@ export interface ExcalidrawImperativeAPI {
     getSceneElementsMapIncludingDeleted: InstanceType<typeof App>["getSceneElementsMapIncludingDeleted"];
     history: {
         clear: InstanceType<typeof App>["resetHistory"];
+        undo: () => void;
+        redo: () => void;
+        onAction: (callback: (event: HistoryActionEvent) => void) => UnsubscribeCallback;
     };
     getSceneElements: InstanceType<typeof App>["getSceneElements"];
     getAppState: () => InstanceType<typeof App>["state"];

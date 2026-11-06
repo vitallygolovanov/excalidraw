@@ -26,14 +26,24 @@ export declare class HistoryChangedEvent {
     readonly isRedoStackEmpty: boolean;
     constructor(isUndoStackEmpty?: boolean, isRedoStackEmpty?: boolean);
 }
+export type HistoryActionType = "undo" | "redo";
+export declare class HistoryActionEvent {
+    readonly type: HistoryActionType;
+    readonly elementIds: readonly string[];
+    constructor(type: HistoryActionType, elementIds: readonly string[]);
+}
 export declare class History {
     private readonly store;
+    private readonly options;
     readonly onHistoryChangedEmitter: Emitter<[HistoryChangedEvent]>;
+    readonly onHistoryActionEmitter: Emitter<[HistoryActionEvent]>;
     readonly undoStack: HistoryDelta[];
     readonly redoStack: HistoryDelta[];
     get isUndoStackEmpty(): boolean;
     get isRedoStackEmpty(): boolean;
-    constructor(store: Store);
+    constructor(store: Store, options?: {
+        recordSelectionChanges?: boolean;
+    });
     clear(): void;
     /**
      * Record a non-empty local durable increment, which will go into the undo stack..
