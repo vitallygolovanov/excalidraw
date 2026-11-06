@@ -3,7 +3,7 @@ import { vi } from "vitest";
 
 import { DEFAULT_SIDEBAR, FONT_FAMILY, ROUNDNESS } from "@excalidraw/common";
 
-import { newElementWith } from "@excalidraw/element";
+import { newEditorFrameElement, newElementWith } from "@excalidraw/element";
 import * as sizeHelpers from "@excalidraw/element";
 
 import type { LocalPoint } from "@excalidraw/math";
@@ -124,6 +124,23 @@ describe("restoreElements", () => {
       seed: expect.any(Number),
       versionNonce: expect.any(Number),
     });
+  });
+
+  // [fork:editorFrameNoCapture]
+  it("should drop a persisted frameId from an editor_frame element", () => {
+    const editorFrame = newEditorFrameElement({
+      id: "id-editor-frame01",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      frameId: "id-frame01",
+    });
+
+    const [restored] = restore.restoreElements([editorFrame], null);
+
+    expect(restored.type).toBe("editor_frame");
+    expect(restored.frameId).toBe(null);
   });
 
   it("should restore line and draw elements correctly", () => {

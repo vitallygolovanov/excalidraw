@@ -398,8 +398,11 @@ const restoreElement = (
     case "diamond":
     case "iframe":
     case "embeddable":
-    case "editor_frame":
       return restoreElementWithProperties(element, {});
+    // [fork:editorFrameNoCapture] an editor_frame is never a frame child, so a
+    // persisted frameId is stale and must not be revived on import
+    case "editor_frame":
+      return restoreElementWithProperties({ ...element, frameId: null }, {});
     case "magicframe":
     case "frame":
       return restoreElementWithProperties(element, {

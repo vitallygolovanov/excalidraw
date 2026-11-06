@@ -2342,6 +2342,13 @@ class App extends React.Component<AppProps, AppState> {
         this.scene.insertElement(frame);
 
         for (const child of selectedElements) {
+          // [fork:editorFrameNoCapture] the only path outside frame.ts that assigns
+          // an EXISTING element to a frame (new elements take the frame under the
+          // cursor and never are editor frames; a duplicate copies its source's
+          // frameId, and a stale one is shed on the next membership pass)
+          if (isEditorFrameElement(child)) {
+            continue;
+          }
           this.scene.mutateElement(child, { frameId: frame.id });
         }
 
@@ -9154,9 +9161,18 @@ class App extends React.Component<AppProps, AppState> {
         const selectedElementsHasAFrame = selectedElements.find((e) =>
           isFrameLikeElement(e),
         );
+        // [fork:editorFrameNoCapture] a selection of only editor frames can never
+        // be captured, so don't highlight the frame under the pointer
+        const selectedElementsAreAllEditorFrames = selectedElements.every((e) =>
+          isEditorFrameElement(e),
+        );
         const topLayerFrame = this.getTopLayerFrameAtSceneCoords(pointerCoords);
         const frameToHighlight =
-          topLayerFrame && !selectedElementsHasAFrame ? topLayerFrame : null;
+          topLayerFrame &&
+          !selectedElementsHasAFrame &&
+          !selectedElementsAreAllEditorFrames
+            ? topLayerFrame
+            : null;
         // Only update the state if there is a difference
         if (this.state.frameToHighlight !== frameToHighlight) {
           flushSync(() => {

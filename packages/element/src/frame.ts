@@ -22,6 +22,7 @@ import {
 import { mutateElement } from "./mutateElement";
 import { getBoundTextElement, getContainerElement } from "./textElement";
 import {
+  isEditorFrameElement, // [fork:editorFrameNoCapture]
   isFrameElement,
   isFrameLikeElement,
   isTextElement,
@@ -92,8 +93,10 @@ export const getElementsCompletelyInFrame = (
     getElementsWithinSelection(elements, frame, elementsMap, false),
   ).filter(
     (element) =>
-      (!isFrameLikeElement(element) && !element.frameId) ||
-      element.frameId === frame.id,
+      // [fork:editorFrameNoCapture] editor frames are never frame children
+      !isEditorFrameElement(element) &&
+      ((!isFrameLikeElement(element) && !element.frameId) ||
+        element.frameId === frame.id),
   );
 
 export const isElementContainingFrame = (
@@ -458,6 +461,7 @@ export const filterElementsEligibleAsFrameChildren = (
     // don't add frames or their children
     if (
       isFrameLikeElement(element) ||
+      isEditorFrameElement(element) || // [fork:editorFrameNoCapture]
       (element.frameId && otherFrames.has(element.frameId))
     ) {
       continue;
@@ -531,6 +535,9 @@ export const addElementsToFrame = <T extends ElementsMapOrArray>(
     // don't add frames or their children
     if (
       isFrameLikeElement(element) ||
+      // [fork:editorFrameNoCapture] the choke point for every frameId assignment
+      // in this module: an editor_frame (Blackboard embed) never becomes a child
+      isEditorFrameElement(element) ||
       (element.frameId && otherFrames.has(element.frameId))
     ) {
       continue;
@@ -666,7 +673,10 @@ export const updateFrameMembershipOfSelectedElements = <
     if (
       element.frameId &&
       !isFrameLikeElement(element) &&
-      !isElementInFrame(element, elementsMap, appState)
+      // [fork:editorFrameNoCapture] a stale frameId on an editor_frame (captured
+      // before this guard existed) is shed on its next move/align/flip
+      (isEditorFrameElement(element) ||
+        !isElementInFrame(element, elementsMap, appState))
     ) {
       elementsToRemove.add(element);
     }

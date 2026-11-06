@@ -10,6 +10,13 @@ import {
   render,
 } from "@excalidraw/excalidraw/tests/test-utils";
 
+import {
+  addElementsToFrame,
+  filterElementsEligibleAsFrameChildren,
+  getElementsCompletelyInFrame,
+} from "../src/frame";
+import { newEditorFrameElement } from "../src/newElement";
+
 import type { ExcalidrawElement } from "../src/types";
 
 const { h } = window;
@@ -559,5 +566,129 @@ describe("adding elements to frames", () => {
       dragElementIntoFrame(frame2, rectangle1);
       expect(h.elements.length).toBe(4);
     });
+  });
+});
+
+// [fork:editorFrameNoCapture] an editor_frame (Blackboard embed) is never a
+// frame child, whatever path would normally assign the frameId.
+describe("editor_frame is never a frame child", () => {
+  let frame: ExcalidrawElement;
+  let editorFrame: ExcalidrawElement;
+  let rect: ExcalidrawElement;
+
+  const frameOf = (element: ExcalidrawElement) =>
+    API.getElement(element).frameId;
+
+  // editor frames have no fill, so hit them on the left edge like a frame border
+  const dragByLeftEdge = (
+    element: ExcalidrawElement,
+    to: [number, number],
+  ) => {
+    mouse.clickAt(element.x, element.y + element.height / 2);
+    mouse.downAt(element.x, element.y + element.height / 2);
+    mouse.moveTo(to[0], to[1]);
+  };
+
+  beforeEach(async () => {
+    await render(<Excalidraw />);
+
+    frame = API.createElement({
+      id: "frame",
+      type: "frame",
+      x: 0,
+      y: 0,
+      width: 300,
+      height: 300,
+    });
+    editorFrame = newEditorFrameElement({
+      id: "editor-frame",
+      x: 600,
+      y: 0,
+      width: 100,
+      height: 100,
+    });
+    rect = API.createElement({
+      id: "rect",
+      type: "rectangle",
+      x: 800,
+      y: 0,
+      width: 50,
+      height: 50,
+    });
+  });
+
+  it("addElementsToFrame skips editor frames but still adds other elements", () => {
+    API.setElements([frame, editorFrame, rect]);
+
+    addElementsToFrame(h.elements, [editorFrame, rect], frame as any, h.state);
+
+    expect(frameOf(editorFrame)).toBe(null);
+    expect(frameOf(rect)).toBe(frame.id);
+  });
+
+  it("an editor frame fully inside a frame's bounds is not a capture candidate", () => {
+    const inside = newEditorFrameElement({
+      id: "inside",
+      x: 10,
+      y: 10,
+      width: 50,
+      height: 50,
+    });
+    API.setElements([frame, inside, rect]);
+
+    const candidates = getElementsCompletelyInFrame(
+      h.elements,
+      frame as any,
+      h.app.scene.getNonDeletedElementsMap(),
+    );
+
+    expect(candidates.map((el) => el.id)).not.toContain(inside.id);
+    expect(
+      filterElementsEligibleAsFrameChildren([inside], frame as any),
+    ).toEqual([]);
+  });
+
+  it("dragging an editor frame into a frame neither highlights nor captures it", () => {
+    API.setElements([frame, editorFrame]);
+    const originalX = editorFrame.x;
+
+    dragByLeftEdge(editorFrame, [frame.x + 100, frame.y + 150]);
+    expect(h.state.selectedElementIds[editorFrame.id]).toBe(true);
+    expect(h.state.frameToHighlight).toBe(null);
+    mouse.up();
+
+    // the drag itself happened (mutation is in place), only the capture didn't
+    expect(API.getElement(editorFrame).x).not.toBe(originalX);
+    expect(frameOf(editorFrame)).toBe(null);
+  });
+
+  it("resizing a frame over an editor frame does not capture it", () => {
+    API.setElements([frame, editorFrame, rect]);
+
+    mouse.clickAt(0, 0);
+    mouse.downAt(frame.x + frame.width, frame.y + frame.height);
+    mouse.moveTo(rect.x + rect.width + 50, rect.y + rect.height + 50);
+    mouse.up();
+
+    expect(frameOf(editorFrame)).toBe(null);
+    expect(frameOf(rect)).toBe(frame.id);
+  });
+
+  it("a stale frameId on an editor frame is shed on its next move", () => {
+    const captured = newEditorFrameElement({
+      id: "captured",
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+      frameId: frame.id,
+    });
+    API.setElements([captured, frame]);
+    expect(frameOf(captured)).toBe(frame.id);
+
+    dragByLeftEdge(captured, [captured.x + 30, captured.y + 50 + 30]);
+    mouse.up();
+
+    expect(frameOf(captured)).toBe(null);
   });
 });
