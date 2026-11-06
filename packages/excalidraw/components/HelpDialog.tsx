@@ -275,7 +275,7 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
             />
             <Shortcut
               label={t("helpDialog.scrollCanvas")}
-              shortcuts={[getShortcutKey("CtrlOrCmd+Wheel")]}
+              shortcuts={[getShortcutKey(`CtrlOrCmd+${t("helpDialog.mouseWheel")}`)]}
             />
             <Shortcut
               label={t("helpDialog.zoomToFit")}
@@ -356,7 +356,7 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               shortcuts={[
                 getShortcutKey(`Space+${t("helpDialog.drag")}`),
                 t("helpDialog.middleOrRightMouseDrag"),
-                getShortcutKey(`CtrlOrCmd+Wheel`),
+                getShortcutKey(`CtrlOrCmd+${t("helpDialog.mouseWheel")}`),
               ]}
               isOr={true}
             />

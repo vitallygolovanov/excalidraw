@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import { t } from "../i18n";
+
 import { CloseIcon } from "./icons";
 import { ToolButton } from "./ToolButton";
 
@@ -55,7 +57,7 @@ export const Toast = ({
       {closable && (
         <ToolButton
           icon={CloseIcon}
-          aria-label="close"
+          aria-label={t("buttons.close")}
           type="icon"
           onClick={onClose}
           className="close"

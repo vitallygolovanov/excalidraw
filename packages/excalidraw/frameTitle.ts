@@ -1,5 +1,7 @@
 import type { ExcalidrawFrameTitleElement } from "@excalidraw/element/types";
 
+import { t } from "./i18n";
+
 import type { ResolveFrameTitle } from "./types";
 
 export function getDisplayedFrameTitle(
@@ -7,10 +9,10 @@ export function getDisplayedFrameTitle(
   resolveFrameTitle?: ResolveFrameTitle,
 ) {
   if (element.type !== "editor_frame") {
-    return element.name?.trim() || "Frame";
+    return element.name?.trim() || t("element.frame");
   }
 
   const resolvedTitle = resolveFrameTitle?.(element)?.trim();
 
-  return resolvedTitle || element.name?.trim() || "Frame";
+  return resolvedTitle || element.name?.trim() || t("element.frame");
 }

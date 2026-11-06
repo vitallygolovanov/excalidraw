@@ -326,7 +326,8 @@
   "headings": {
     "canvasActions": "Canvas actions",
     "selectedShapeActions": "Selected shape actions",
-    "shapes": "Shapes"
+    "shapes": "Shapes",
+    "generate": "Generate"
   },
   "hints": {
     "dismissSearch": "Escape to dismiss search",
@@ -504,12 +505,14 @@
   },
   "stats": {
     "angle": "Angle",
+    "canvas": "Canvas",
     "shapes": "Shapes",
     "height": "Height",
     "scene": "Scene",
     "selected": "Selected",
     "storage": "Storage",
     "fullTitle": "Canvas & Shape properties",
+    "gridStep": "Grid step",
     "title": "Properties",
     "generalStats": "General",
     "elementProperties": "Shape properties",
@@ -569,6 +572,7 @@
     "mostUsedCustomColors": "Most used custom colors",
     "colors": "Colors",
     "shades": "Shades",
+    "shade": "Shade",
     "hexCode": "Hex code",
     "noShades": "No shades available for this color"
   },
@@ -608,6 +612,7 @@
     "button": "Insert",
     "description": "Currently only <flowchartLink>Flowchart</flowchartLink>,<sequenceLink> Sequence, </sequenceLink> and <classLink>Class </classLink>Diagrams are supported. The other types will be rendered as image in Excalidraw.",
     "syntax": "Mermaid Syntax",
+    "inputPlaceholder": "Write Mermaid diagram definition here...",
     "preview": "Preview"
   },
   "quickSearch": {
