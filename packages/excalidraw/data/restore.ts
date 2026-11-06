@@ -402,7 +402,14 @@ const restoreElement = (
     // [fork:editorFrameNoCapture] an editor_frame is never a frame child, so a
     // persisted frameId is stale and must not be revived on import
     case "editor_frame":
-      return restoreElementWithProperties({ ...element, frameId: null }, {});
+      // `name` is required here and not in the generic cases above: splitting this out of that group
+      // narrows `element` to the editor-frame type, which carries `name` exactly like a native frame.
+      return restoreElementWithProperties(
+        { ...element, frameId: null },
+        {
+          name: element.name ?? null,
+        },
+      );
     case "magicframe":
     case "frame":
       return restoreElementWithProperties(element, {
