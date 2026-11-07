@@ -594,6 +594,11 @@ export const actionToggleHandTool = register({
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },
+  // matchKey is case-insensitive, so Shift+H would also match here and
+  // collide with flipHorizontal (the action manager cancels on ambiguity).
   keyTest: (event) =>
-    !event.altKey && !event[KEYS.CTRL_OR_CMD] && matchKey(event, KEYS.H),
+    !event.altKey &&
+    !event.shiftKey &&
+    !event[KEYS.CTRL_OR_CMD] &&
+    matchKey(event, KEYS.H),
 });

@@ -898,3 +898,53 @@ describe("mutliple elements", () => {
     );
   });
 });
+
+// Keyboard shortcuts (regression: Shift+H used to also match the hand tool
+// shortcut, so the action manager cancelled the flip as ambiguous)
+describe("flip keyboard shortcuts", () => {
+  const pressShiftCode = (key: string, code: string) => {
+    fireEvent.keyDown(document, { key, code, shiftKey: true });
+    fireEvent.keyUp(document, { key, code, shiftKey: true });
+  };
+
+  it("Shift+H flips horizontally without colliding with the hand tool", async () => {
+    createAndSelectOneArrow();
+    const originalElement = cloneJSON(h.elements[0]) as ExcalidrawLinearElement;
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    pressShiftCode("H", "KeyH");
+
+    expect(warnSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining("multiple actions"),
+      expect.anything(),
+    );
+    expect(h.state.activeTool.type).toBe("selection");
+
+    const newElement = h.elements[0] as ExcalidrawLinearElement;
+    expect(newElement.points[1][0]).toBeCloseTo(-originalElement.points[1][0]);
+    expect(newElement.points[1][1]).toBeCloseTo(originalElement.points[1][1]);
+    await checkElementsBoundingBox(
+      originalElement,
+      newElement,
+      TWO_POINTS_LINEAR_ELEMENT_FLIP_TOLERANCE_IN_PIXELS,
+    );
+  });
+
+  it("Shift+V flips vertically", async () => {
+    createAndSelectOneArrow();
+    const originalElement = cloneJSON(h.elements[0]) as ExcalidrawLinearElement;
+
+    pressShiftCode("V", "KeyV");
+
+    expect(h.state.activeTool.type).toBe("selection");
+
+    const newElement = h.elements[0] as ExcalidrawLinearElement;
+    expect(newElement.points[1][0]).toBeCloseTo(originalElement.points[1][0]);
+    expect(newElement.points[1][1]).toBeCloseTo(-originalElement.points[1][1]);
+    await checkElementsBoundingBox(
+      originalElement,
+      newElement,
+      TWO_POINTS_LINEAR_ELEMENT_FLIP_TOLERANCE_IN_PIXELS,
+    );
+  });
+});
