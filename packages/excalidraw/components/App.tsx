@@ -10905,21 +10905,53 @@ class App extends React.Component<AppProps, AppState> {
 
     this.scene.insertElement(imageElement);
 
+    // --- fork: settle onto the live element, not the copy captured before the upload
+    // The upload can outlive an undo, a delete, a move or a resize of the element it settles.
+    // The drop-time size is recorded so a resize made while loading can be told apart later.
+    // It must be the placeholder size, not the 0x0 the element is created with: the callers
+    // size the placeholder right after this call returns, so it is done here first (idempotent
+    // for an element that already has a size).
+    this.initializeImageDimensions(imageElement);
+    const sizeAtInsert = { width: imageElement.width, height: imageElement.height };
+    // --- end fork
+
     try {
       const image = await this.initializeImage({
         imageFile,
         imageElement,
       });
 
+      // --- fork: settle onto the live element, not the copy captured before the upload
       const nextElements = this.scene
         .getElementsIncludingDeleted()
         .map((element) => {
-          if (element.id === image.id) {
-            return image;
+          if (element.id !== image.id || element.type !== "image") {
+            return element;
           }
+          // Undone or deleted meanwhile: it stays so. The captured copy would resurrect it.
+          if (element.isDeleted) {
+            return element;
+          }
+          // Resized meanwhile: the user's size wins over the natural-size fit, which is
+          // otherwise applied re-centred where the element is now.
+          const resized =
+            element.width !== sizeAtInsert.width ||
+            element.height !== sizeAtInsert.height;
 
-          return element;
+          return newElementWith(element, {
+            fileId: image.fileId,
+            crop: image.crop,
+            ...(resized
+              ? {}
+              : {
+                  x: element.x + element.width / 2 - image.width / 2,
+                  y: element.y + element.height / 2 - image.height / 2,
+                  width: image.width,
+                  height: image.height,
+                }),
+          });
         });
+      // --- end fork
 
       // schedules an immediate micro action, which will update snapshot,
       // but won't be undoable, which is what we want!
@@ -10930,9 +10962,14 @@ class App extends React.Component<AppProps, AppState> {
 
       return image;
     } catch (error: any) {
-      this.scene.mutateElement(imageElement, {
-        isDeleted: true,
-      });
+      // --- fork: the failure reaches the live element, if it is still there
+      const current = this.scene.getElement(imageElement.id);
+      if (current && !current.isDeleted) {
+        this.scene.mutateElement(current, {
+          isDeleted: true,
+        });
+      }
+      // --- end fork
       this.actionManager.executeAction(actionFinalize);
       this.setState({
         errorMessage: error.message || t("errors.imageInsertError"),
