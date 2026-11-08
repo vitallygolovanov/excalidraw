@@ -2592,7 +2592,8 @@ class App extends React.Component<AppProps, AppState> {
       } else {
         initialData = (await this.props.initialData) || null;
       }
-      if (initialData?.libraryItems) {
+      // [fork:libraryEnabled]
+      if (initialData?.libraryItems && this.props.libraryEnabled !== false) {
         this.library
           .updateLibrary({
             libraryItems: initialData.libraryItems,
@@ -11373,7 +11374,11 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     const libraryJSON = event.dataTransfer.getData(MIME_TYPES.excalidrawlib);
-    if (libraryJSON && typeof libraryJSON === "string") {
+    if (
+      libraryJSON &&
+      typeof libraryJSON === "string" &&
+      this.props.libraryEnabled !== false // [fork:libraryEnabled]
+    ) {
       try {
         const libraryItems = parseLibraryJSON(libraryJSON);
         this.addElementsFromPasteOrLibrary({
@@ -11476,6 +11481,14 @@ class App extends React.Component<AppProps, AppState> {
           captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         });
       } else if (ret.type === MIME_TYPES.excalidrawlib) {
+        // [fork:libraryEnabled] a host without a library cannot use the file
+        if (this.props.libraryEnabled === false) {
+          this.setState({
+            isLoading: false,
+            errorMessage: t("errors.importLibraryError"),
+          });
+          return;
+        }
         await this.library
           .updateLibrary({
             libraryItems: file,

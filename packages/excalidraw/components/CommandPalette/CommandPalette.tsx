@@ -386,6 +386,7 @@ function CommandPaletteInner({
       const additionalCommands: CommandPaletteItem[] = [
         {
           label: t("toolBar.library"),
+          predicate: appProps.libraryEnabled !== false, // [fork:libraryEnabled]
           category: DEFAULT_CATEGORIES.app,
           icon: LibraryIcon,
           viewMode: false,

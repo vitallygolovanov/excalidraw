@@ -10,6 +10,9 @@ import { register } from "./register";
 export const actionAddToLibrary = register({
   name: "addToLibrary",
   trackEvent: { category: "element" },
+  // [fork:libraryEnabled] the context menu drops actions whose predicate fails
+  predicate: (_elements, _appState, appProps) =>
+    appProps.libraryEnabled !== false,
   perform: (elements, appState, _, app) => {
     const selectedElements = app.scene.getSelectedElements({
       selectedElementIds: appState.selectedElementIds,

@@ -500,6 +500,12 @@ export interface ExcalidrawProps {
     gridModeEnabled?: boolean;
     objectsSnapModeEnabled?: boolean;
     libraryReturnUrl?: string;
+    /**
+     * [fork:libraryEnabled] `false` removes every library surface: the "Add to library" context-menu
+     * item, the sidebar library trigger/tab, the command-palette entry and `.excalidrawlib` drops.
+     * Defaults to upstream behaviour (`true`).
+     */
+    libraryEnabled?: boolean;
     theme?: Theme;
     name?: string;
     renderCustomStats?: (elements: readonly NonDeletedExcalidrawElement[], appState: UIAppState) => JSX.Element;

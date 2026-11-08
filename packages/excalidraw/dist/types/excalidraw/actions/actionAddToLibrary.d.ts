@@ -4,6 +4,7 @@ export declare const actionAddToLibrary: {
     trackEvent: {
         category: "element";
     };
+    predicate: (_elements: readonly import("@excalidraw/element/types").ExcalidrawElement[], _appState: import("../types").AppState, appProps: import("../types").ExcalidrawProps) => boolean;
     perform: (elements: readonly import("@excalidraw/element/types").OrderedExcalidrawElement[], appState: Readonly<import("../types").AppState>, _: any, app: import("../types").AppClassProperties) => Promise<{
         captureUpdate: "EVENTUALLY";
         appState: {
