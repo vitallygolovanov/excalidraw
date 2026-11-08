@@ -8,13 +8,19 @@ import {
 } from "@excalidraw/element";
 import { getFrameChildren } from "@excalidraw/element";
 
-import { KEYS, updateActiveTool, matchKey } from "@excalidraw/common";
+import {
+  arrayToMap,
+  KEYS,
+  updateActiveTool,
+  matchKey,
+} from "@excalidraw/common";
 
 import { getElementsInGroup } from "@excalidraw/element";
 
 import { getCommonBounds } from "@excalidraw/element";
 
 import { CaptureUpdateAction } from "@excalidraw/element";
+import { syncMovedIndices } from "@excalidraw/element";
 
 import type { ExcalidrawElement } from "@excalidraw/element/types";
 
@@ -207,6 +213,11 @@ export const actionWrapSelectionInFrame = register({
       frame,
       appState,
     );
+
+    // [fork:wrapFrameIndex] the appended frame has `index: null`, and Scene.replaceAllElements
+    // validates indices (throwing in dev/test) BEFORE syncInvalidIndices would repair it: give the
+    // frame its index here, as duplicate/group do for the elements they insert
+    syncMovedIndices(nextElements, arrayToMap([frame]));
 
     return {
       elements: nextElements,
