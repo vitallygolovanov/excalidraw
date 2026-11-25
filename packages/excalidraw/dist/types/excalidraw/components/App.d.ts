@@ -335,6 +335,19 @@ declare class App extends React.Component<AppProps, AppState> {
     componentDidUpdate(prevProps: AppProps, prevState: AppState): void;
     private renderInteractiveSceneCallback;
     private onScroll;
+    /**
+     * fork: a cut/copy the canvas must leave alone even though focus is inside
+     * the container. Hosts render rich-text editors (contenteditable) inside the
+     * container, and `isWritableElement` only knows inputs, textareas and our own
+     * wysiwyg: a cut in such an editor used to ALSO cut the canvas selection and
+     * overwrite the clipboard the editor had just written. `defaultPrevented`
+     * means another handler already served this clipboard event; the
+     * contenteditable check covers editors that do not prevent it. The focused
+     * element is read rather than `event.target`, which an editor's cut can
+     * already have detached from the document (a detached node is never
+     * `isContentEditable`).
+     */
+    private isClipboardEventOwnedElsewhere;
     private onCut;
     private onCopy;
     private static resetTapTwice;

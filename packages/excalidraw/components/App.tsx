@@ -3227,11 +3227,32 @@ class App extends React.Component<AppProps, AppState> {
 
   // Copy/paste
 
+  /**
+   * fork: a cut/copy the canvas must leave alone even though focus is inside
+   * the container. Hosts render rich-text editors (contenteditable) inside the
+   * container, and `isWritableElement` only knows inputs, textareas and our own
+   * wysiwyg: a cut in such an editor used to ALSO cut the canvas selection and
+   * overwrite the clipboard the editor had just written. `defaultPrevented`
+   * means another handler already served this clipboard event; the
+   * contenteditable check covers editors that do not prevent it. The focused
+   * element is read rather than `event.target`, which an editor's cut can
+   * already have detached from the document (a detached node is never
+   * `isContentEditable`).
+   */
+  private isClipboardEventOwnedElsewhere(event: ClipboardEvent) {
+    const active = document.activeElement;
+    return (
+      event.defaultPrevented ||
+      isWritableElement(event.target) ||
+      (active instanceof HTMLElement && active.isContentEditable)
+    );
+  }
+
   private onCut = withBatchedUpdates((event: ClipboardEvent) => {
     const isExcalidrawActive = this.excalidrawContainerRef.current?.contains(
       document.activeElement,
     );
-    if (!isExcalidrawActive || isWritableElement(event.target)) {
+    if (!isExcalidrawActive || this.isClipboardEventOwnedElsewhere(event)) {
       return;
     }
     this.actionManager.executeAction(actionCut, "keyboard", event);
@@ -3243,7 +3264,7 @@ class App extends React.Component<AppProps, AppState> {
     const isExcalidrawActive = this.excalidrawContainerRef.current?.contains(
       document.activeElement,
     );
-    if (!isExcalidrawActive || isWritableElement(event.target)) {
+    if (!isExcalidrawActive || this.isClipboardEventOwnedElsewhere(event)) {
       return;
     }
     this.actionManager.executeAction(actionCopy, "keyboard", event);
@@ -3326,7 +3347,13 @@ class App extends React.Component<AppProps, AppState> {
       if (
         event &&
         (!(elementUnderCursor instanceof HTMLCanvasElement) ||
-          isWritableElement(target))
+          isWritableElement(target) ||
+          // fork: a keyboard paste into a host's rich-text editor (contenteditable)
+          // inside the container, with the pointer resting over the canvas, pasted
+          // onto the canvas too. Unlike cut/copy (`isClipboardEventOwnedElsewhere`)
+          // there is deliberately no `defaultPrevented` bail here: hosts may
+          // preventDefault a paste they hand on to the canvas.
+          (target instanceof HTMLElement && target.isContentEditable))
       ) {
         return;
       }
