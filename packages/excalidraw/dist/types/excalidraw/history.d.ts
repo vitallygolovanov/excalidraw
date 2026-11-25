@@ -32,6 +32,18 @@ export declare class HistoryActionEvent {
     readonly elementIds: readonly string[];
     constructor(type: HistoryActionType, elementIds: readonly string[]);
 }
+/**
+ * [fork:host-history-stacks] The undo/redo stacks, owned by whoever creates them. A host that keeps one
+ * object per document and passes it back (`historyStacks` prop) gets its undo history through a remount
+ * of the editor: React Activity hide/reveal re-runs mount (which resets history), and a host that
+ * rebuilds its collaboration room remounts the editor outright. Opaque to hosts: create one with
+ * `createHistoryStacks()` and never touch the entries.
+ */
+export type HistoryStacks = {
+    readonly undoStack: HistoryDelta[];
+    readonly redoStack: HistoryDelta[];
+};
+export declare const createHistoryStacks: () => HistoryStacks;
 export declare class History {
     private readonly store;
     private readonly options;
@@ -43,6 +55,7 @@ export declare class History {
     get isRedoStackEmpty(): boolean;
     constructor(store: Store, options?: {
         recordSelectionChanges?: boolean;
+        stacks?: HistoryStacks;
     });
     clear(): void;
     /**

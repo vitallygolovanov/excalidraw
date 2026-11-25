@@ -49,6 +49,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     detectScroll = true,
     handleKeyboardGlobally = false,
     recordSelectionHistory,
+    historyStacks, // [fork:host-history-stacks]
     onLibraryChange,
     autoFocus = false,
     generateIdForFile,
@@ -156,6 +157,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           detectScroll={detectScroll}
           handleKeyboardGlobally={handleKeyboardGlobally}
           recordSelectionHistory={recordSelectionHistory}
+          historyStacks={historyStacks} // [fork:host-history-stacks]
           onLibraryChange={onLibraryChange}
           autoFocus={autoFocus}
           generateIdForFile={generateIdForFile}
@@ -301,6 +303,8 @@ export {
 } from "@excalidraw/element";
 
 export { CaptureUpdateAction } from "@excalidraw/element";
+export { createHistoryStacks } from "./history"; // [fork:host-history-stacks]
+export type { HistoryStacks } from "./history"; // [fork:host-history-stacks]
 
 export { parseLibraryTokensFromUrl, useHandleLibrary } from "./data/library";
 

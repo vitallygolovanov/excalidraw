@@ -23,6 +23,8 @@ export { isLinearElement } from "@excalidraw/element";
 export { FONT_FAMILY, THEME, MIME_TYPES, ROUNDNESS, DEFAULT_LASER_COLOR, UserIdleState, normalizeLink, } from "@excalidraw/common";
 export { mutateElement, newElementWith, bumpVersion, } from "@excalidraw/element";
 export { CaptureUpdateAction } from "@excalidraw/element";
+export { createHistoryStacks } from "./history";
+export type { HistoryStacks } from "./history";
 export { parseLibraryTokensFromUrl, useHandleLibrary } from "./data/library";
 export { sceneCoordsToViewportCoords, viewportCoordsToSceneCoords, } from "@excalidraw/common";
 export { Sidebar } from "./components/Sidebar/Sidebar";

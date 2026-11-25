@@ -119,6 +119,23 @@ export class HistoryActionEvent {
   ) {}
 }
 
+/**
+ * [fork:host-history-stacks] The undo/redo stacks, owned by whoever creates them. A host that keeps one
+ * object per document and passes it back (`historyStacks` prop) gets its undo history through a remount
+ * of the editor: React Activity hide/reveal re-runs mount (which resets history), and a host that
+ * rebuilds its collaboration room remounts the editor outright. Opaque to hosts: create one with
+ * `createHistoryStacks()` and never touch the entries.
+ */
+export type HistoryStacks = {
+  readonly undoStack: HistoryDelta[];
+  readonly redoStack: HistoryDelta[];
+};
+
+export const createHistoryStacks = (): HistoryStacks => ({
+  undoStack: [],
+  redoStack: [],
+});
+
 export class History {
   public readonly onHistoryChangedEmitter = new Emitter<
     [HistoryChangedEvent]
@@ -127,8 +144,8 @@ export class History {
   // [fork:history-action-event]
   public readonly onHistoryActionEmitter = new Emitter<[HistoryActionEvent]>();
 
-  public readonly undoStack: HistoryDelta[] = [];
-  public readonly redoStack: HistoryDelta[] = [];
+  public readonly undoStack: HistoryDelta[];
+  public readonly redoStack: HistoryDelta[];
 
   public get isUndoStackEmpty() {
     return this.undoStack.length === 0;
@@ -141,8 +158,16 @@ export class History {
   // [fork:skip-selection-only-history] opt-in (`recordSelectionHistory={false}`); upstream default.
   constructor(
     private readonly store: Store,
-    private readonly options: { recordSelectionChanges?: boolean } = {},
-  ) {}
+    private readonly options: {
+      recordSelectionChanges?: boolean;
+      // [fork:host-history-stacks]
+      stacks?: HistoryStacks;
+    } = {},
+  ) {
+    const stacks = options.stacks ?? createHistoryStacks();
+    this.undoStack = stacks.undoStack;
+    this.redoStack = stacks.redoStack;
+  }
 
   public clear() {
     this.undoStack.length = 0;

@@ -882,6 +882,7 @@ class App extends React.Component<AppProps, AppState> {
     // [fork:skip-selection-only-history]
     this.history = new History(this.store, {
       recordSelectionChanges: this.props.recordSelectionHistory !== false,
+      stacks: this.props.historyStacks, // [fork:host-history-stacks]
     });
 
     if (excalidrawAPI) {
@@ -962,6 +963,7 @@ class App extends React.Component<AppProps, AppState> {
     // [fork:skip-selection-only-history]
     this.history = new History(this.store, {
       recordSelectionChanges: this.props.recordSelectionHistory !== false,
+      stacks: this.props.historyStacks, // [fork:host-history-stacks]
     });
 
     this.actionManager.registerAll(actions);
@@ -2643,7 +2645,12 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     this.resetStore();
-    this.resetHistory();
+    // [fork:host-history-stacks] a mount must not wipe history the host is carrying across a remount
+    // (Activity reveal re-runs this; a rebuilt host room remounts the editor). Stacks the host does not
+    // own start empty anyway, so skipping the reset changes nothing for them.
+    if (!this.props.historyStacks) {
+      this.resetHistory();
+    }
     this.syncActionResult({
       ...scene,
       captureUpdate: CaptureUpdateAction.NEVER,

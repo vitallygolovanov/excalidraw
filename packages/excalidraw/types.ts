@@ -54,7 +54,7 @@ import type { Action } from "./actions/types";
 import type { Spreadsheet } from "./charts";
 import type { ClipboardData } from "./clipboard";
 import type App from "./components/App";
-import type { HistoryActionEvent } from "./history";
+import type { HistoryActionEvent, HistoryStacks } from "./history";
 import type Library from "./data/library";
 import type { FileSystemHandle } from "./data/filesystem";
 import type { ContextMenuItems } from "./components/ContextMenu";
@@ -684,6 +684,12 @@ export interface ExcalidrawProps {
    * stack. Read once at mount. Defaults to upstream behaviour (`true`).
    */
   recordSelectionHistory?: boolean;
+  /**
+   * [fork:host-history-stacks] Host-owned undo/redo stacks (`createHistoryStacks()`). Pass the SAME object
+   * for the same document and the undo history survives a remount; mount then no longer resets history
+   * (an explicit `resetScene()` / `history.clear()` still does). Read once at mount.
+   */
+  historyStacks?: HistoryStacks;
   onLibraryChange?: (libraryItems: LibraryItems) => void | Promise<any>;
   autoFocus?: boolean;
   generateIdForFile?: (file: File) => string | Promise<string>;

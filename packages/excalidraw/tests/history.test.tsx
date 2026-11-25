@@ -50,6 +50,7 @@ import {
   actionSendToBack,
 } from "../actions";
 import { createUndoAction, createRedoAction } from "../actions/actionHistory";
+import { createHistoryStacks } from "../history";
 import { actionToggleViewMode } from "../actions/actionToggleViewMode";
 import * as StaticScene from "../renderer/staticScene";
 import { getDefaultAppState } from "../appState";
@@ -5315,5 +5316,74 @@ describe("history (fork): appState-only updateScene captures", () => {
     Keyboard.undo();
     expect(h.state.viewBackgroundColor).toBe(before);
     expect(h.elements).toEqual([expect.objectContaining({ id: rect.id, isDeleted: false })]);
+  });
+});
+
+// [fork:host-history-stacks]
+describe("history (fork): host-owned historyStacks survive a remount", () => {
+  beforeEach(() => {
+    unmountComponent();
+  });
+
+  it("undoes a change made before the editor was unmounted and mounted again", async () => {
+    const stacks = createHistoryStacks();
+    await render(
+      <Excalidraw handleKeyboardGlobally={true} historyStacks={stacks} />,
+    );
+    const rect = UI.createElement("rectangle", { x: 10 });
+    expect(stacks.undoStack.length).toBe(1);
+    const elements = [...h.elements];
+
+    unmountComponent();
+    await render(
+      <Excalidraw
+        handleKeyboardGlobally={true}
+        historyStacks={stacks}
+        initialData={{ elements }}
+      />,
+    );
+
+    // Mount no longer wipes the host's stacks...
+    expect(API.getUndoStack().length).toBe(1);
+    // ...and the carried entry still applies to the remounted scene.
+    Keyboard.undo();
+    expect(h.elements).toEqual([
+      expect.objectContaining({ id: rect.id, isDeleted: true }),
+    ]);
+  });
+
+  it("without host stacks a remount starts with an empty history (upstream)", async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    UI.createElement("rectangle", { x: 10 });
+    expect(API.getUndoStack().length).toBe(1);
+    const elements = [...h.elements];
+
+    unmountComponent();
+    await render(
+      <Excalidraw handleKeyboardGlobally={true} initialData={{ elements }} />,
+    );
+    expect(API.getUndoStack().length).toBe(0);
+  });
+
+  it("resetScene() still clears host-owned stacks", async () => {
+    const stacks = createHistoryStacks();
+    let api: ExcalidrawImperativeAPI | null = null;
+    await render(
+      <Excalidraw
+        handleKeyboardGlobally={true}
+        historyStacks={stacks}
+        excalidrawAPI={(value) => {
+          api = value;
+        }}
+      />,
+    );
+    UI.createElement("rectangle", { x: 10 });
+    expect(stacks.undoStack.length).toBe(1);
+
+    act(() => {
+      (api as unknown as ExcalidrawImperativeAPI).resetScene();
+    });
+    expect(stacks.undoStack.length).toBe(0);
+    expect(stacks.redoStack.length).toBe(0);
   });
 });
