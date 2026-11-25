@@ -39,6 +39,9 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     gridModeEnabled,
     libraryReturnUrl,
     libraryEnabled, // [fork:libraryEnabled]
+    // [fork:shouldSuppressDrop] read by App.handleAppOnDrop, but never threaded here when it was added,
+    // so it arrived undefined and host drop suppression (drops over editor embeds) never ran.
+    shouldSuppressDrop,
     theme,
     name,
     renderCustomStats,
@@ -144,6 +147,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           gridModeEnabled={gridModeEnabled}
           libraryReturnUrl={libraryReturnUrl}
           libraryEnabled={libraryEnabled} // [fork:libraryEnabled]
+          shouldSuppressDrop={shouldSuppressDrop} // [fork:shouldSuppressDrop]
           theme={theme}
           name={name}
           renderCustomStats={renderCustomStats}
