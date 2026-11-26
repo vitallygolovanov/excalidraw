@@ -1,7 +1,9 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist/types"
+    "outDir": "./dist/types",
+    // The emitted types are committed with LF; tsc defaults to CRLF on Windows.
+    "newLine": "lf"
   },
   "include": ["**/*"],
   "exclude": ["**/*.test.*", "tests", "types", "examples", "dist"]
